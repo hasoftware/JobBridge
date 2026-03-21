@@ -41,3 +41,21 @@ CREATE TABLE jobs (
     created_at timestamp DEFAULT now(),
     updated_at timestamp DEFAULT now()
 );
+
+CREATE TABLE applications (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    job_id uuid REFERENCES jobs(id),
+    user_id integer REFERENCES users(id),
+    cv_url text NOT NULL,
+    status text DEFAULT 'submitted',
+    created_at timestamp DEFAULT now(),
+    updated_at timestamp DEFAULT now()
+);
+
+CREATE TABLE refresh_tokens (
+    id serial PRIMARY KEY,
+    user_id integer NOT NULL REFERENCES users(id),
+    token text NOT NULL,
+    expires_at timestamp NOT NULL,
+    created_at timestamp DEFAULT now()
+);
