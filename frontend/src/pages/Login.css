@@ -1,0 +1,111 @@
+.auth-page {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    background: var(--jb-surface-0);
+}
+
+.auth-card {
+    background: var(--jb-surface-1);
+    border: 1px solid var(--jb-border);
+    border-radius: var(--jb-radius-lg);
+    padding: 40px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: var(--jb-shadow-md);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--jb-text-primary);
+    margin-bottom: 8px;
+}
+
+.auth-subtitle {
+    font-size: 14px;
+    color: var(--jb-text-secondary);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--jb-text-primary);
+}
+
+.form-group input {
+    padding: 10px 14px;
+    border: 1px solid var(--jb-border-strong);
+    border-radius: var(--jb-radius-md);
+    font-size: 14px;
+    color: var(--jb-text-primary);
+    background: var(--jb-surface-1);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.form-group input:focus {
+    border-color: var(--jb-primary);
+}
+
+.form-group.has-error input {
+    border-color: var(--jb-error);
+}
+
+.form-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-input-wrapper input {
+    width: 100%;
+    padding-right: 60px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    color: var(--jb-text-tertiary);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.form-error {
+    color: var(--jb-error);
+    font-size: 12px;
+}
+
+.auth-submit {
+    margin-top: 8px;
+    padding: 12px;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--jb-text-secondary);
+}
