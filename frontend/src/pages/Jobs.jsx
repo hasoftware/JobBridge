@@ -35,6 +35,7 @@ export default function Jobs() {
       return true
     })
     setJobs(filtered)
+    setPage(1)
     setLoading(false)
   }, [keyword, locationFilter, jobType])
 
