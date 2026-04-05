@@ -1,0 +1,134 @@
+.company-page {
+  min-height: calc(100vh - 64px);
+  background: var(--jb-surface-0);
+}
+
+.company-page-banner {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--jb-primary-light);
+}
+
+.company-page-header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  margin-top: -40px;
+  margin-bottom: 24px;
+}
+
+.company-page-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--jb-radius-lg);
+  border: 4px solid var(--jb-surface-1);
+  background: var(--jb-surface-1);
+  object-fit: cover;
+}
+
+.company-page-info {
+  padding-bottom: 8px;
+}
+
+.company-page-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--jb-text-primary);
+  margin: 0 0 6px;
+}
+
+.company-page-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--jb-text-secondary);
+}
+
+.company-page-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  padding-bottom: 32px;
+}
+
+.company-page-main {
+  min-width: 0;
+}
+
+.company-section {
+  background: var(--jb-surface-1);
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.company-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--jb-text-primary);
+  margin: 0 0 12px;
+}
+
+.company-section p {
+  color: var(--jb-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.company-jobs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.company-side-card {
+  background: var(--jb-surface-1);
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius-lg);
+  padding: 20px;
+}
+
+.company-side-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--jb-text-primary);
+}
+
+.company-side-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.company-side-card li {
+  font-size: 13px;
+  color: var(--jb-text-secondary);
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.company-side-card strong {
+  color: var(--jb-text-primary);
+  font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+  .company-page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .company-jobs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .company-page-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
