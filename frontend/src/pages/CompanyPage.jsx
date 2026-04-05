@@ -42,7 +42,12 @@ export default function CompanyPage() {
 
       <div className="container">
         <div className="company-page-header">
-          <img src={company.logo_url} alt={company.name} className="company-page-logo" />
+          <img
+            src={company.logo_url || '/images/company.png'}
+            alt={company.name}
+            className="company-page-logo"
+            onError={(e) => { e.target.src = '/images/company.png' }}
+          />
           <div className="company-page-info">
             <h1 className="company-page-name">{company.name}</h1>
             <div className="company-page-meta">
