@@ -1,0 +1,118 @@
+.job-detail {
+  padding: 32px 0;
+  min-height: calc(100vh - 64px);
+  background: var(--jb-surface-0);
+}
+
+.job-detail-header {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background: var(--jb-surface-1);
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.job-detail-logo {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: var(--jb-radius-md);
+  overflow: hidden;
+  background: var(--jb-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.job-detail-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.job-detail-logo-placeholder {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--jb-primary);
+}
+
+.job-detail-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.job-detail-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--jb-text-primary);
+  margin: 0 0 6px;
+}
+
+.job-detail-company {
+  display: inline-block;
+  font-size: 16px;
+  color: var(--jb-primary);
+  text-decoration: none;
+  margin-bottom: 8px;
+}
+
+.job-detail-company:hover {
+  text-decoration: underline;
+}
+
+.job-detail-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--jb-text-secondary);
+}
+
+.job-detail-salary {
+  color: var(--jb-success);
+  font-weight: 500;
+}
+
+.apply-btn {
+  padding: 12px 28px;
+}
+
+.job-detail-body {
+  background: var(--jb-surface-1);
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius-lg);
+  padding: 28px;
+}
+
+.job-detail-body section {
+  margin-bottom: 20px;
+}
+
+.job-detail-body h2 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--jb-text-primary);
+  margin: 0 0 8px;
+}
+
+.job-detail-body p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--jb-text-secondary);
+}
+
+.job-detail-deadline {
+  font-size: 14px;
+  color: var(--jb-text-tertiary);
+  padding-top: 16px;
+  border-top: 1px solid var(--jb-border);
+}
+
+@media (max-width: 768px) {
+  .job-detail-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
