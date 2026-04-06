@@ -1,8 +1,9 @@
 .cv-builder {
   display: grid;
-  grid-template-columns: 220px 1fr 1fr;
+  grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1fr);
   height: calc(100vh - 64px);
   background: var(--jb-surface-0);
+  overflow: hidden;
 }
 
 .cv-builder-sidebar {
