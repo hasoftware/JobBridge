@@ -10,13 +10,17 @@ const SKILL_DICTIONARY = [
     "Communication", "Leadership", "Project Management", "Agile", "Scrum",
 ]
 
+function normalize(str) {
+    return str.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+}
+
 function extractSkills(text) {
     if (!text || typeof text !== "string") return []
-    const lower = text.toLowerCase()
+    const lower = normalize(text)
     const found = new Set()
 
     for (const skill of SKILL_DICTIONARY) {
-        const pattern = new RegExp(`\\b${skill.toLowerCase().replace(/[.+]/g, "\\$&")}\\b`)
+        const pattern = new RegExp(`(^|[^a-z0-9])${normalize(skill).replace(/[.+]/g, "\\$&")}([^a-z0-9]|$)`)
         if (pattern.test(lower)) {
             found.add(skill)
         }
