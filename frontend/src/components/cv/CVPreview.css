@@ -1,0 +1,98 @@
+.cv-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cv-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cv-preview-paper {
+  background: #fff;
+  color: #1f2937;
+  padding: 32px;
+  border-radius: var(--jb-radius-md);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 800px;
+  box-shadow: var(--jb-shadow-md);
+}
+
+.cv-preview-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border-bottom: 2px solid #2563eb;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.cv-preview-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cv-preview-name {
+  margin: 0 0 6px;
+  font-size: 22px;
+  color: #0f172a;
+}
+
+.cv-preview-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.cv-preview-paper section {
+  margin-bottom: 18px;
+}
+
+.cv-preview-paper h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin: 0 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.cv-preview-item {
+  margin-bottom: 10px;
+}
+
+.cv-preview-item strong {
+  font-weight: 600;
+}
+
+.cv-preview-date {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.cv-preview-item p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #475569;
+}
+
+.cv-preview-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cv-preview-skill {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
