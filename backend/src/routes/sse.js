@@ -39,11 +39,28 @@ router.get("/", (req, res) => {
     res.flushHeaders()
 
     res.write(`data: ${JSON.stringify({ type: "connected" })}\n\n`)
+
+    const old = clients.get(userId)
+    if (old && old !== res) {
+        try { old.end() } catch {}
+    }
     clients.set(userId, res)
 
-    req.on("close", () => {
-        clients.delete(userId)
-    })
+    const heartbeat = setInterval(() => {
+        try {
+            res.write(": ping\n\n")
+        } catch {
+            clearInterval(heartbeat)
+        }
+    }, 30000)
+
+    const cleanup = () => {
+        clearInterval(heartbeat)
+        if (clients.get(userId) === res) clients.delete(userId)
+    }
+
+    req.on("close", cleanup)
+    req.on("aborted", cleanup)
 })
 
 module.exports = { router, broadcast, broadcastAll }
