@@ -27,6 +27,12 @@ export default function JobForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (data.salary_min && data.salary_max && Number(data.salary_min) > Number(data.salary_max)) {
+      alert('Lương tối thiểu không được lớn hơn lương tối đa')
+      return
+    }
+
     setSaving(true)
     setTimeout(() => {
       setSaving(false)
