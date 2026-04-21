@@ -2,7 +2,8 @@ const pino = require("pino")
 const path = require("path")
 const { Worker } = require("worker_threads")
 
-const logFile = process.env.LOG_FILE || path.join(__dirname, "../../../logs/app.log")
+const logsDir = process.env.LOG_DIR || path.resolve(process.cwd(), "logs")
+const logFile = process.env.LOG_FILE || path.join(logsDir, "app.log")
 const level = process.env.LOG_LEVEL || "info"
 
 const transport = pino.transport({
