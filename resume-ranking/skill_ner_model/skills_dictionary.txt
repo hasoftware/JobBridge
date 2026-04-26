@@ -1,0 +1,58 @@
+Python
+JavaScript
+TypeScript
+Java
+C++
+C#
+Go
+Ruby
+PHP
+Rust
+React
+Vue
+Angular
+Node.js
+Express
+Django
+Flask
+Spring
+PostgreSQL
+MySQL
+MongoDB
+Redis
+Docker
+Kubernetes
+AWS
+GCP
+Azure
+Git
+Linux
+REST API
+GraphQL
+HTML
+CSS
+Tailwind
+Bootstrap
+Machine Learning
+Deep Learning
+TensorFlow
+PyTorch
+Pandas
+NumPy
+Scikit-learn
+Excel
+Power BI
+Tableau
+SQL
+Photoshop
+Illustrator
+Figma
+Sketch
+SEO
+Content Marketing
+Google Analytics
+Communication
+Leadership
+Project Management
+Agile
+Scrum
