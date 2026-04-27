@@ -1,28 +1,30 @@
-const CURRENCY_SYMBOLS = {
-    USD: "$",
-    VND: "₫",
-    EUR: "€",
-    GBP: "£",
-    SGD: "S$",
-    JPY: "¥",
+export function salaryStepForCurrency(currency) {
+  const c = String(currency || "USD").toUpperCase()
+  if (c === "VND") return 500_000
+  if (c === "JPY" || c === "KRW") return 100_000
+  if (c === "USD" || c === "EUR" || c === "GBP" || c === "SGD") return 1_000
+  return 1_000
 }
 
-export function formatSalary(job) {
-    if (!job) return ""
-    const { salary_min, salary_max, currency } = job
-    if (!salary_min && !salary_max) return "Thoả thuận"
-
-    const cur = currency || "USD"
-    const sym = CURRENCY_SYMBOLS[cur] || cur
-    const fmt = (v) => Number(v).toLocaleString()
-
-    if (salary_min && salary_max) {
-        return `${sym} ${fmt(salary_min)} - ${fmt(salary_max)}`
-    }
-    if (salary_min) return `${sym} ${fmt(salary_min)}+`
-    return `${sym} đến ${fmt(salary_max)}`
+export function parseSalaryNumber(raw) {
+  if (raw === "" || raw == null) return null
+  const n = Number(raw)
+  if (Number.isNaN(n)) return null
+  return n
 }
 
-export function compareSalary(a, b) {
-    return (b.salary_max || b.salary_min || 0) - (a.salary_max || a.salary_min || 0)
+export function sanitizeSalaryInput(raw) {
+  if (raw === "" || raw == null) return ""
+  const n = Number(raw)
+  if (Number.isNaN(n)) return ""
+  return String(Math.max(0, n))
+}
+
+export function validateSalaryMinMax(minRaw, maxRaw) {
+  const min = parseSalaryNumber(minRaw)
+  const max = parseSalaryNumber(maxRaw)
+  if (min != null && max != null && max < min) {
+    return "Maximum salary must be greater than or equal to minimum salary."
+  }
+  return null
 }

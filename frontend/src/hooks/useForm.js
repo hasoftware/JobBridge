@@ -1,41 +1,36 @@
 import { useState, useCallback } from 'react'
 
-export function useForm(initial = {}, validators = {}) {
-    const [values, setValues] = useState(initial)
-    const [errors, setErrors] = useState({})
-    const [touched, setTouched] = useState({})
+export function useForm(initial) {
+  const [values, setValues] = useState(initial)
+  const [errors, setErrors] = useState({})
+  const set = (k, v) => {
+    setValues((p) => ({ ...p, [k]: v }))
+    setErrors((p) => ({ ...p, [k]: "" }))
+  }
+  const reset = () => {
+    setValues(initial)
+    setErrors({})
+  }
+  const patch = useCallback((obj) => setValues((p) => ({ ...p, ...obj })), [])
+  return { values, errors, setErrors, set, reset, patch, setValues }
+}
 
-    const setField = useCallback((field, value) => {
-        setValues((prev) => ({ ...prev, [field]: value }))
-        if (errors[field]) {
-            setErrors((prev) => ({ ...prev, [field]: '' }))
-        }
-    }, [errors])
-
-    const handleBlur = useCallback((field) => {
-        setTouched((prev) => ({ ...prev, [field]: true }))
-        const validator = validators[field]
-        if (validator) {
-            const error = validator(values[field], values)
-            if (error) setErrors((prev) => ({ ...prev, [field]: error }))
-        }
-    }, [values, validators])
-
-    const validate = useCallback(() => {
-        const newErrors = {}
-        for (const field in validators) {
-            const error = validators[field](values[field], values)
-            if (error) newErrors[field] = error
-        }
-        setErrors(newErrors)
-        return Object.keys(newErrors).length === 0
-    }, [values, validators])
-
-    const reset = useCallback(() => {
-        setValues(initial)
-        setErrors({})
-        setTouched({})
-    }, [initial])
-
-    return { values, errors, touched, setField, handleBlur, validate, reset }
+export function useSubmit(fn) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const submit = async (...args) => {
+    setLoading(true)
+    setError("")
+    setSuccess("")
+    try {
+      const msg = await fn(...args)
+      setSuccess(msg || "")
+    } catch (e) {
+      setError(e.message || "Something went wrong.")
+    } finally {
+      setLoading(false)
+    }
+  }
+  return { loading, error, success, submit, setError, setSuccess }
 }
