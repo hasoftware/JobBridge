@@ -5,8 +5,8 @@ const sanitizeString = (str) => {
 
     return str
         .trim()
-        .replace(/<[^>]*>/g, '')
-        .replace(/[<>'"`;]/g, '');
+        .replace(/<[^>]*>/g, '')       // strip HTML tags
+        .replace(/[<>'"`;]/g, '');     // strip dangerous chars
 };
 
 const sanitizeRequestBody = (body) => {
@@ -14,6 +14,7 @@ const sanitizeRequestBody = (body) => {
 
     const clean = {};
 
+    // recursively sanitize all string values in the body
     for (const [key, value] of Object.entries(body)) {
         if (typeof value === 'string') {
             clean[key] = sanitizeString(value);
@@ -22,15 +23,16 @@ const sanitizeRequestBody = (body) => {
                 return (typeof item === 'string') ? sanitizeString(item) : sanitizeRequestBody(item)
             });
         } else if (typeof value === 'object' && value !== null) {
-            clean[key] = sanitizeRequestBody(value);
+            clean[key] = sanitizeRequestBody(value); // recurse into nested objects
         } else {
-            clean[key] = value;
+            clean[key] = value; // number, boolean — leave as-is
         }
     }
 
     return clean;
 };
 
+// to scrub sensitive fields like password, token, secret into '***' for logging
 const scrub = (body) => {
     if (!body) {
         return null;
@@ -49,4 +51,4 @@ const scrub = (body) => {
     return safe;
 };
 
-module.exports = { sanitizeString, sanitizeRequestBody, scrub };
+module.exports = { sanitizeString, sanitizeRequestBody, scrub };   

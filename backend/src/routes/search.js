@@ -1,69 +1,204 @@
 const express = require("express")
 const pool = require("../../config/db")
+const { industries } = require("../../config")
 
 const router = express.Router()
 
-router.get("/jobs", async (req, res) => {
-    const { q, location, type, page = 1, limit = 20 } = req.query
-    const offset = (Number(page) - 1) * Number(limit)
-
-    const conditions = []
-    const values = []
-
-    if (q) {
-        values.push(q)
-        conditions.push(`search_vector @@ plainto_tsquery('english', $${values.length})`)
-    }
-    if (location) {
-        values.push(location)
-        conditions.push(`location ILIKE '%' || $${values.length} || '%'`)
-    }
-    if (type) {
-        values.push(type)
-        conditions.push(`job_type = $${values.length}`)
-    }
-
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""
-
+router.get("/", async (req, res, next) => {
     try {
-        values.push(Number(limit), offset)
-        const { rows } = await pool.query(
-            `SELECT id, title, location, salary_min, salary_max, currency, job_type, publishing_date
-             FROM jobs ${where}
-             ORDER BY publishing_date DESC
-             LIMIT $${values.length - 1} OFFSET $${values.length}`,
-            values,
-        )
+        const q = String(req.query.q || "").trim()
+        const location = String(req.query.location || "").trim()
+        const industry = String(req.query.industry || "").trim()
+        const entity = String(req.query.entity || "all").trim().toLowerCase()
+        const excludeUserId = Number(req.query.exclude_user_id)
+        const hasExcludeUserId = Number.isInteger(excludeUserId) && excludeUserId > 0
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 6, 1), 20)
 
-        const countRes = await pool.query(
-            `SELECT COUNT(*) FROM jobs ${where}`,
-            values.slice(0, values.length - 2),
-        )
+        if (industry && !industries.includes(industry)) {
+            return res.status(400).json({ message: "industry must be a valid GICS sector" })
+        }
 
-        res.json({
-            jobs: rows,
-            total: Number(countRes.rows[0].count),
-            page: Number(page),
-            limit: Number(limit),
+        const canSearchJobs = entity === "all" || entity === "jobs"
+        const canSearchCompanies = entity === "all" || entity === "companies"
+        const canSearchCandidates = entity === "all" || entity === "candidates"
+
+        let jobs = []
+        let companies = []
+        let candidates = []
+
+        if (canSearchJobs) {
+            const jobValues = []
+            const jobWhere = [
+                "(j.publishing_date IS NULL OR j.publishing_date <= NOW())",
+                "(j.application_deadline IS NULL OR j.application_deadline >= NOW())",
+            ]
+            let rankExpr = "0"
+
+            if (q) {
+                jobValues.push(q)
+                const qIdx = jobValues.length
+                rankExpr = `ts_rank(j.search_vector, plainto_tsquery('english', $${qIdx}))`
+                jobWhere.push(`(
+                    j.search_vector @@ plainto_tsquery('english', $${qIdx})
+                    OR j.title ILIKE '%' || $${qIdx} || '%'
+                    OR COALESCE(j.description, '') ILIKE '%' || $${qIdx} || '%'
+                    OR COALESCE(j.required_qualifications, '') ILIKE '%' || $${qIdx} || '%'
+                    OR COALESCE(c.name, '') ILIKE '%' || $${qIdx} || '%'
+                )`)
+            }
+
+            if (location) {
+                jobValues.push(location)
+                jobWhere.push(`COALESCE(j.location, '') ILIKE '%' || $${jobValues.length} || '%'`)
+            }
+
+            if (industry) {
+                jobValues.push(industry)
+                jobWhere.push(`COALESCE(c.industry, '') ILIKE '%' || $${jobValues.length} || '%'`)
+            }
+
+            if (hasExcludeUserId) {
+                jobValues.push(excludeUserId)
+                jobWhere.push(`j.created_by <> $${jobValues.length}`)
+            }
+
+            const jobsQuery = `
+                SELECT
+                    j.id,
+                    j.title,
+                    j.location,
+                    j.job_type,
+                    j.salary_min,
+                    j.salary_max,
+                    j.currency,
+                    c.name AS company_name,
+                    c.industry AS company_industry,
+                    ${rankExpr} AS rank
+                FROM jobs j
+                LEFT JOIN users u ON u.id = j.created_by
+                LEFT JOIN companies c ON c.user_id = u.id
+                WHERE ${jobWhere.join(" AND ")}
+                ORDER BY rank DESC, j.created_at DESC
+                LIMIT ${limit}
+            `
+            const jobsResult = await pool.query(jobsQuery, jobValues)
+            jobs = jobsResult.rows
+        }
+
+        if (canSearchCompanies) {
+            const companyValues = []
+            const companyWhere = []
+
+            if (q) {
+                companyValues.push(q)
+                const qIdx = companyValues.length
+                companyWhere.push(`(
+                        c.name ILIKE '%' || $${qIdx} || '%'
+                        OR COALESCE(c.description, '') ILIKE '%' || $${qIdx} || '%'
+                        OR COALESCE(c.industry, '') ILIKE '%' || $${qIdx} || '%'
+                        OR COALESCE(c.website, '') ILIKE '%' || $${qIdx} || '%'
+                        OR COALESCE(c.phone, '') ILIKE '%' || $${qIdx} || '%'
+                        OR COALESCE(u.email, '') ILIKE '%' || $${qIdx} || '%'
+                        OR regexp_replace(lower(COALESCE(c.name, '')), '[^a-z0-9]+', '', 'g')
+                            LIKE '%' || regexp_replace(lower($${qIdx}), '[^a-z0-9]+', '', 'g') || '%'
+                    )`)
+            }
+
+            if (location) {
+                companyValues.push(location)
+                companyWhere.push(`COALESCE(c.location, '') ILIKE '%' || $${companyValues.length} || '%'`)
+            }
+
+            if (industry) {
+                companyValues.push(industry)
+                companyWhere.push(`COALESCE(c.industry, '') ILIKE '%' || $${companyValues.length} || '%'`)
+            }
+
+            if (hasExcludeUserId) {
+                companyValues.push(excludeUserId)
+                companyWhere.push(`c.user_id <> $${companyValues.length}`)
+            }
+
+            const companiesQuery = `
+                SELECT
+                    c.id,
+                    c.user_id,
+                    c.name,
+                    c.description,
+                    c.location,
+                    c.logo_url,
+                    c.industry,
+                    c.website,
+                    c.phone,
+                    c.company_size,
+                    c.founded_year,
+                    c.verification_status
+                FROM companies c
+                LEFT JOIN users u ON u.id = c.user_id
+                ${companyWhere.length ? `WHERE ${companyWhere.join(" AND ")}` : ""}
+                ORDER BY
+                    CASE WHEN c.verification_status = 'verified' THEN 0 ELSE 1 END,
+                    c.created_at DESC
+                LIMIT ${limit}
+            `
+            const companiesResult = await pool.query(companiesQuery, companyValues)
+            companies = companiesResult.rows
+        }
+
+        if (canSearchCandidates) {
+            const candidateValues = []
+            const candidateWhere = []
+
+            if (q) {
+                candidateValues.push(q)
+                const qIdx = candidateValues.length
+                candidateWhere.push(`(
+                        COALESCE(cp.full_name, '') ILIKE '%' || $${qIdx} || '%'
+                        OR COALESCE(cp.summary, '') ILIKE '%' || $${qIdx} || '%'
+                        OR COALESCE(cp.location, '') ILIKE '%' || $${qIdx} || '%'
+                        OR COALESCE(u.email, '') ILIKE '%' || $${qIdx} || '%'
+                        OR regexp_replace(lower(COALESCE(cp.full_name, '')), '[^a-z0-9]+', '', 'g')
+                            LIKE '%' || regexp_replace(lower($${qIdx}), '[^a-z0-9]+', '', 'g') || '%'
+                    )`)
+            }
+
+            if (location) {
+                candidateValues.push(location)
+                candidateWhere.push(`COALESCE(cp.location, '') ILIKE '%' || $${candidateValues.length} || '%'`)
+            }
+
+            if (hasExcludeUserId) {
+                candidateValues.push(excludeUserId)
+                candidateWhere.push(`cp.user_id <> $${candidateValues.length}`)
+            }
+
+            const candidatesQuery = `
+                SELECT
+                    cp.id,
+                    cp.user_id,
+                    cp.full_name,
+                    cp.location,
+                    cp.summary,
+                    cp.avatar_url,
+                    u.email
+                FROM candidate_profiles cp
+                LEFT JOIN users u ON u.id = cp.user_id
+                ${candidateWhere.length ? `WHERE ${candidateWhere.join(" AND ")}` : ""}
+                ORDER BY cp.created_at DESC
+                LIMIT ${limit}
+            `
+            const candidatesResult = await pool.query(candidatesQuery, candidateValues)
+            candidates = candidatesResult.rows
+        }
+
+        return res.json({
+            query: q,
+            jobs,
+            companies,
+            candidates,
         })
     } catch (err) {
-        console.error("Search error:", err)
-        res.status(500).json({ message: err.message })
-    }
-})
-
-router.get("/companies", async (req, res) => {
-    const { q } = req.query
-    try {
-        const { rows } = await pool.query(
-            `SELECT id, name, industry, location FROM companies
-             WHERE name ILIKE '%' || $1 || '%' OR industry ILIKE '%' || $1 || '%'
-             LIMIT 20`,
-            [q || ""],
-        )
-        res.json({ companies: rows })
-    } catch (err) {
-        res.status(500).json({ message: err.message })
+        return next(err)
     }
 })
 

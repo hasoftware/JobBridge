@@ -1,42 +1,79 @@
 const pool = require("../../config/db")
 
-const recentViews = new Map()
-const DEBOUNCE_MS = 30 * 60 * 1000
+const pendingCounts = new Map()
 
-function makeKey(jobId, sessionKey) {
-    return `${jobId}:${sessionKey}`
+const getUTCHourBucket = (date = new Date()) => {
+    const d = new Date(date)
+    d.setUTCMinutes(0, 0, 0)
+    return d.toISOString()
 }
 
-function shouldCount(jobId, sessionKey) {
-    const key = makeKey(jobId, sessionKey)
-    const last = recentViews.get(key)
-    const now = Date.now()
-    if (last && now - last < DEBOUNCE_MS) return false
-    recentViews.set(key, now)
-    return true
+const recordJobView = (jobID) => {
+    const bucket = getUTCHourBucket()
+    const key = `${jobID}|${bucket}`
+    pendingCounts.set(key, (pendingCounts.get(key) || 0) + 1)
+
+    console.log("Job view recored") 
+    console.log(pendingCounts)
 }
 
-async function increment(jobId, sessionKey) {
-    if (!shouldCount(jobId, sessionKey)) return null
+const flushViewCounts = async () => {
+    if (pendingCounts.size === 0) return
+
+    const snapshot = new Map(pendingCounts)
+    pendingCounts.clear()
+
+    const client = await pool.connect()
+
     try {
-        const { rows } = await pool.query(
-            "UPDATE jobs SET view_count = COALESCE(view_count, 0) + 1 WHERE id = $1 RETURNING view_count",
-            [jobId],
+        await client.query("BEGIN")
+
+        const values = []
+        const params = []
+        let i = 1
+
+        for (const [key, count] of snapshot.entries()) {
+            const [jobId, statHour] = key.split("|")
+            values.push(`($${i++}::uuid, $${i++}::timestamptz, $${i++})`)
+            params.push(jobId, statHour, count)
+        }
+
+        await client.query(
+            `
+            INSERT INTO job_views (job_id, date, view_count)
+            VALUES ${values.join(", ")}
+            ON CONFLICT (job_id, date)
+            DO UPDATE
+            SET view_count = job_views.view_count + EXCLUDED.view_count
+            `,
+            params,
         )
-        return rows[0]?.view_count || null
+
+        await client.query("COMMIT")
     } catch (err) {
-        console.error("View counter error:", err.message)
-        return null
+        await client.query("ROLLBACK")
+
+        for (const [key, count] of snapshot.entries()) {
+            pendingCounts.set(key, (pendingCounts.get(key) || 0) + count)
+        }
+
+        console.error("Failed to flush view counts:", err)
+    } finally {
+        client.release()
     }
 }
 
-setInterval(() => {
-    const now = Date.now()
-    for (const [key, time] of recentViews.entries()) {
-        if (now - time > DEBOUNCE_MS) {
-            recentViews.delete(key)
+function startViewCountFlushWorker(intervalMs = 60000) {
+    setInterval(async () => {
+        try {
+            await flushViewCounts()
+        } catch (err) {
+            console.error("View count worker error:", err)
         }
-    }
-}, 5 * 60 * 1000)
+    }, intervalMs)
+}
 
-module.exports = { increment, shouldCount }
+module.exports = {
+    recordJobView,
+    startViewCountFlushWorker,
+}

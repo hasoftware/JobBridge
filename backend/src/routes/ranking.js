@@ -1,50 +1,79 @@
 const express = require("express")
-const net = require("net")
-
-const router = express.Router()
+const pool = require("../../config/db")
 const auth = require("../middleware/auth")
+const { spawn } = require("child_process")
+const path = require("path")
+const router = express.Router()
 
-const RANKING_HOST = process.env.RANKING_HOST || "localhost"
-const RANKING_PORT = Number(process.env.RANKING_PORT || 8000)
-
-function callPython(payload) {
+function callDaemon(data) {
     return new Promise((resolve, reject) => {
-        const client = net.createConnection({ host: RANKING_HOST, port: RANKING_PORT })
-        let buffer = ""
-
-        client.on("connect", () => {
-            client.write(JSON.stringify(payload) + "\n")
-        })
-
-        client.on("data", (data) => {
-            buffer += data.toString()
-        })
-
-        client.on("end", () => {
+        const payload = JSON.stringify(data)
+        const py = spawn("python", [path.join(__dirname, "../../bridge.py"), payload])
+        let stdout = ""
+        let stderr = ""
+        py.stdout.on("data", (d) => (stdout += d.toString()))
+        py.stderr.on("data", (d) => (stderr += d.toString()))
+        py.on("close", (code) => {
+            if (code !== 0) return reject(new Error(`Daemon error: ${stderr}`))
             try {
-                resolve(JSON.parse(buffer))
-            } catch (err) {
-                reject(new Error("Invalid response from ranking daemon"))
+                resolve(JSON.parse(stdout))
+            } catch {
+                reject(new Error("Invalid response from daemon"))
             }
         })
-
-        client.on("error", reject)
     })
 }
 
-router.post("/", auth, async (req, res) => {
-    const { job, resumes } = req.body
-
-    if (!job || !Array.isArray(resumes)) {
-        return res.status(400).json({ message: "Missing job or resumes" })
-    }
-
+// GET /ranking/:job_id — rank applicants for a job
+router.get("/:job_id", auth, async (req, res, next) => {
     try {
-        const ranking = await callPython({ job, resumes })
-        res.json({ ranking })
+        if (req.user.role !== "recruiter") {
+            return res.status(403).json({ message: "Forbidden" })
+        }
+
+        const { job_id } = req.params
+
+        // 1. get job
+        const jobResult = await pool.query(
+            `SELECT title, description, responsibilities, required_qualifications
+             FROM jobs WHERE id = $1`,
+            [job_id],
+        )
+        if (jobResult.rows.length === 0) {
+            return res.status(404).json({ message: "Job not found" })
+        }
+        const job = jobResult.rows[0]
+
+        // 2. get applicants + CV paths
+        const appResult = await pool.query(
+            `SELECT a.id, a.status, a.cv_url, a.created_at,
+                    u.email, cp.full_name
+             FROM applications a
+             JOIN users u ON u.id = a.user_id
+             LEFT JOIN candidate_profiles cp ON cp.user_id = a.user_id
+             WHERE a.job_id = $1`,
+            [job_id],
+        )
+        if (appResult.rows.length === 0) return res.json([])
+
+        const applicants = appResult.rows
+
+        // 3. build job text
+        const jobText = [job.title, job.description, job.responsibilities, job.required_qualifications].filter(Boolean).join("\n")
+        
+        // 4. send paths directly to daemon — it handles parsing + ranking
+        const ranked = await callDaemon({
+            resumes: applicants.map((a) => ({
+                name: a.full_name,
+                email: a.email,
+                path: a.cv_url ? a.cv_url.replace(/\\/g, "/") : null,
+            })),
+            job_text: jobText,
+        })
+
+        return res.json(ranked)
     } catch (err) {
-        console.error("Ranking error:", err)
-        res.status(500).json({ message: err.message })
+        next(err)
     }
 })
 

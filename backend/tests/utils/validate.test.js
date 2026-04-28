@@ -7,7 +7,7 @@ const mockReqRes = (body) => {
         json:   jest.fn(),
     };
     const next = jest.fn();
-
+    
     return { req, res, next };
 };
 
@@ -73,6 +73,11 @@ describe('schemas.register', () => {
     test('fails if password is too short', () => {
         const { error } = run({ email: 'john@test.com', password: 'Pa1!' });
         expect(error.details[0].message).toMatch(/at least 8/i);
+    });
+
+    test('returns all errors at once with abortEarly false', () => {
+        const { error } = run({ email: 'bad', password: '123' });
+        expect(error.details.length).toBeGreaterThan(1);
     });
 });
 

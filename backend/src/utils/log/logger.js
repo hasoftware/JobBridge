@@ -1,39 +1,22 @@
-const pino = require("pino")
-const path = require("path")
-const { Worker } = require("worker_threads")
 
-const logsDir = process.env.LOG_DIR || path.resolve(process.cwd(), "logs")
-const logFile = process.env.LOG_FILE || path.join(logsDir, "app.log")
-const level = process.env.LOG_LEVEL || "info"
+const { Worker } = require('worker_threads');
+const worker = new Worker('./src/utils/log/loggerWorker.js'); // this need to be path from root, not from logger.js
 
-const transport = pino.transport({
-    targets: [
-        { target: "pino/file", options: { destination: logFile, mkdir: true } },
-        { target: "pino-pretty", options: { colorize: true } },
-    ],
-})
+worker.on('error', (err) => {
+  console.error('Logger worker crashed:', err.message);
+});
 
-const logger = pino({ level }, transport)
+worker.on('exit', (code) => {
+  if (code !== 0 && process.env.NODE_ENV !== 'test') {
+    console.error(`Logger worker exited with code ${code}`);
+  }
+});
 
-let worker = null
+const logger = {
+  info:  (message, meta) => worker.postMessage({ level: 'info',  message, meta }),
+  warn:  (message, meta) => worker.postMessage({ level: 'warn',  message, meta }),
+  error: (message, meta) => worker.postMessage({ level: 'error', message, meta }),
+  close: ()              => worker.terminate(),  
+};
 
-function startWorker() {
-    if (worker) return
-    worker = new Worker(path.join(__dirname, "loggerWorker.js"))
-    worker.on("error", (err) => {
-        logger.error({ err }, "Logger worker error")
-    })
-}
-
-function close() {
-    if (worker) {
-        worker.terminate()
-        worker = null
-    }
-    return new Promise((resolve) => transport.end(() => resolve()))
-}
-
-startWorker()
-
-module.exports = logger
-module.exports.close = close
+module.exports = logger;

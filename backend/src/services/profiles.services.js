@@ -1,66 +1,193 @@
+const path = require("path")
+
 const pool = require("../../config/db")
+const { upload } = require("../../config")
 
-const buildUpdateQuery = (table, fields, data, idField, idValue, includeUpdatedAt = false) => {
-    const updates = []
-    const values = []
+const { isUUID } = require("../utils/validateUUID")
 
-    for (const f of fields) {
-        if (data[f] !== undefined) {
-            values.push(data[f])
-            updates.push(`${f} = $${values.length}`)
+const PROFILE_TABLES = ["candidate_profiles", "companies"]
+const candidate_cols = ["id", "full_name", "location", "summary", "avatar_url"]
+const company_cols = ["id", "name", "description", "website", "location", "logo_url", "verification_status", "industry", "company_size", "founded_year", "phone"]
+
+const getProfile = async ({ profile_type, excludedColumns = [], user_id, profile_id = null }) => {
+    try {
+        if (profile_id && !isUUID(profile_id)) {
+            throw { message: "Invalid Profile UUID" }
+        }
+
+        const table = profile_type === "job_seeker" ? PROFILE_TABLES[0] : PROFILE_TABLES[1]
+
+        const columns = profile_type === "job_seeker" ? candidate_cols : company_cols
+
+        const filteredCols = columns.filter((col) => !excludedColumns.includes(col))
+
+        if (filteredCols.length === 0) {
+            throw new Error("No columns left to select")
+        }
+
+        if (user_id && profile_id) {
+            throw new Error("Can only accept user_id or profile_id")
+        }
+
+        if (!user_id && !profile_id) {
+            throw new Error("No ID provided")
+        }
+
+        const idValue = user_id || profile_id
+        const idColumn = user_id ? "user_id" : "id"
+
+        const sql = `SELECT ${filteredCols.join(", ")}
+            FROM ${table}
+            WHERE ${idColumn} = $1`
+
+        const result = await pool.query(sql, [idValue])
+
+        return result.rows[0] || null
+    } catch (err) {
+        throw err
+    }
+}
+
+const updateProfile = async ({ profile_type, data = {}, user_id }) => {
+    if (!user_id) {
+        throw new Error("No ID provided")
+    }
+
+    let result
+
+    if (profile_type == "job_seeker") {
+        const { full_name, location, summary } = data
+        result = await pool.query(
+            `UPDATE candidate_profiles
+            SET full_name = COALESCE($1, full_name),
+            location = COALESCE($2, location),
+            summary = COALESCE($3, summary)
+            WHERE user_id = $4
+            RETURNING *`,
+            [full_name, location, summary, user_id],
+        )
+    } else if (profile_type == "recruiter") {
+        const { name, description, website, location, industry, company_size } = data
+
+        result = await pool.query(
+            `UPDATE companies
+            SET name = COALESCE(NULLIF($1,''), name),
+            description = COALESCE(NULLIF($2,''), description),
+            website = COALESCE(NULLIF($3,''), website),
+            location = COALESCE(NULLIF($4,''), location),
+            industry = COALESCE(NULLIF($5, ''), industry),
+            company_size = COALESCE(NULLIF($6, ''), company_size)
+            WHERE user_id = $7
+            RETURNING id, name, verification_status, description, website, location, industry, company_size`,
+            [name, description, website, location, industry, company_size, user_id],
+        )
+    }
+
+    return result.rows[0] || null
+}
+
+const storeAvatarToDB = async ({ user_id, avatarUrl }) => {
+    await pool.query(`UPDATE candidate_profiles SET avatar_url=$1 WHERE user_id=$2`, [avatarUrl, user_id])
+}
+
+const deleteAvatarFromDB = async ({ user_id }) => {
+    await pool.query(`UPDATE candidate_profiles SET avatar_url = NULL WHERE user_id = $1`, [user_id])
+}
+
+const storeLogoToDB = async ({ user_id, logoUrl }) => {
+    await pool.query(`UPDATE companies SET logo_url=$1 WHERE user_id=$2`, [logoUrl, user_id])
+}
+
+const storeVerificationDocsToDB = async ({ companyId, files }) => {
+    const values = files.map((_, i) => `($1, $${i * 3 + 2}, $${i * 3 + 3}, $${i * 3 + 4})`).join(", ")
+
+    const params = files.flatMap((f) => {
+        const filePath = path.join(upload.base_path, `verification_docs/${f.filename}`)
+        const documentType = path.extname(f.originalname).slice(1).toLowerCase()
+        const fileName = f.originalname
+
+        return [filePath, documentType, fileName]
+    })
+
+    return (
+        await pool.query(
+            `INSERT INTO company_verification_documents
+            (company_id, file_path, document_type, file_name)
+            VALUES ${values}
+            RETURNING id, document_type, file_path, file_name`,
+            [companyId, ...params],
+        )
+    ).rows
+}
+
+const getVerificationDocs = async ({ companyId }) => {
+    return (
+        await pool.query(
+            `SELECT id, file_name, file_path, document_type, uploaded_at
+             FROM company_verification_documents
+             WHERE company_id = $1
+             ORDER BY uploaded_at ASC`,
+            [companyId],
+        )
+    ).rows
+}
+
+const deleteVerificationDocs = async ({ docs, company_id }) => {
+    if (!docs || docs.length === 0) return 0
+
+    const result = await pool.query(
+        `DELETE FROM company_verification_documents
+         WHERE id = ANY($1)
+         AND company_id = $2
+         RETURNING id`,
+        [docs, company_id],
+    )
+
+    const deletedCount = result.rowCount
+
+    // no docs -> reset verification status to 'unverified'
+    if (deletedCount > 0) {
+        const remaining = await pool.query(`SELECT COUNT(*) FROM company_verification_documents WHERE company_id = $1`, [company_id])
+
+        if (parseInt(remaining.rows[0].count, 10) === 0) {
+            await pool.query(`UPDATE companies SET verification_status = 'unverified' WHERE id = $1`, [company_id])
         }
     }
 
-    if (updates.length === 0) return null
+    return deletedCount
+}
 
-    if (includeUpdatedAt) updates.push("updated_at = NOW()")
-    values.push(idValue)
-
-    return {
-        sql: `UPDATE ${table} SET ${updates.join(", ")} WHERE ${idField} = $${values.length} RETURNING *`,
-        values,
+const editVerificationDoc = async ({ id, file_path, file_name }) => {
+    if (!id && !file_name) {
+        throw new Error("file id and file_name are required")
     }
-}
 
-const getCandidateById = async (userId) => {
-    const { rows } = await pool.query(
-        "SELECT * FROM candidate_profiles WHERE user_id=$1",
-        [userId],
-    )
-    return rows[0] || null
-}
+    const query = `
+        UPDATE company_verification_documents
+        SET
+        file_name = COALESCE($1, file_name),
+        file_path = COALESCE($2, file_path)
+        WHERE id = $3
+        RETURNING id, file_name, file_path, document_type, uploaded_at
+    `
+    const values = [file_name, file_path, id]
+    const result = await pool.query(query, values)
 
-const updateCandidate = async (userId, data) => {
-    const fields = ["full_name", "phone", "address", "bio", "title", "experience_years", "avatar_url"]
-    const query = buildUpdateQuery("candidate_profiles", fields, data, "user_id", userId, true)
+    if (result.rows.length === 0) {
+        throw new Error("Verification document not found")
+    }
 
-    if (!query) return getCandidateById(userId)
-
-    const { rows } = await pool.query(query.sql, query.values)
-    return rows[0]
-}
-
-const getCompanyByUserId = async (userId) => {
-    const { rows } = await pool.query(
-        "SELECT * FROM companies WHERE user_id=$1",
-        [userId],
-    )
-    return rows[0] || null
-}
-
-const updateCompany = async (userId, data) => {
-    const fields = ["name", "description", "industry", "company_size", "founded_year", "phone", "website", "logo_url", "location"]
-    const query = buildUpdateQuery("companies", fields, data, "user_id", userId)
-
-    if (!query) return getCompanyByUserId(userId)
-
-    const { rows } = await pool.query(query.sql, query.values)
-    return rows[0]
+    return result.rows[0]
 }
 
 module.exports = {
-    getCandidateById,
-    updateCandidate,
-    getCompanyByUserId,
-    updateCompany,
+    getProfile,
+    updateProfile,
+    storeAvatarToDB,
+    deleteAvatarFromDB,
+    storeLogoToDB,
+    storeVerificationDocsToDB,
+    getVerificationDocs,
+    deleteVerificationDocs,
+    editVerificationDoc,
 }

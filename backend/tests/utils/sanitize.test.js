@@ -29,12 +29,12 @@ describe('sanitizeString()', () => {
 describe('sanitizeRequestBody()', () => {
     test('sanitizes all string values', () => {
         const body = {
-            name:  '<script>hack()</script>John',
-            email: 'john@test.com',
+        name:  '<script>hack()</script>John',
+        email: 'john@test.com',
         };
         expect(sanitizeRequestBody(body)).toEqual({
-            name:  'hack()John',
-            email: 'john@test.com',
+        name:  'hack()John',
+        email: 'john@test.com',
         });
     });
 
@@ -44,8 +44,12 @@ describe('sanitizeRequestBody()', () => {
     });
 
     test('sanitizes nested objects', () => {
-        const body = { user: { bio: '<b>hello</b>' } };
-        expect(sanitizeRequestBody(body)).toEqual({ user: { bio: 'hello' } });
+        const body = {
+        user: { bio: '<b>hello</b>' },
+        };
+        expect(sanitizeRequestBody(body)).toEqual({
+        user: { bio: 'hello' },
+        });
     });
 
     test('sanitizes strings inside arrays', () => {
@@ -58,16 +62,16 @@ describe('sanitizeRequestBody()', () => {
         expect(sanitizeRequestBody(undefined)).toBe(undefined);
         expect(sanitizeRequestBody('string')).toBe('string');
     });
-});
+    });
 
-describe('scrub()', () => {
+    describe('scrub()', () => {
     test('scrubs password field', () => {
         const body = { email: 'john@test.com', password: 'secret123' };
         expect(scrub(body).password).toBe('***');
         expect(scrub(body).email).toBe('john@test.com');
     });
 
-    test('scrubs any key containing token', () => {
+    test('scrubs any key ending with token', () => {
         const body = { access_token: 'abc', refresh_token: 'xyz', token: '123' };
         const result = scrub(body);
         expect(result.access_token).toBe('***');
@@ -75,7 +79,7 @@ describe('scrub()', () => {
         expect(result.token).toBe('***');
     });
 
-    test('scrubs keys containing secret', () => {
+    test('scrubs keys ending with secret', () => {
         const body = { jwtSecret: 'supersecret' };
         expect(scrub(body).jwtSecret).toBe('***');
     });
@@ -83,7 +87,7 @@ describe('scrub()', () => {
     test('does not mutate original body', () => {
         const body = { password: 'secret123' };
         scrub(body);
-        expect(body.password).toBe('secret123');
+        expect(body.password).toBe('secret123'); // original untouched
     });
 
     test('returns null if body is null', () => {
