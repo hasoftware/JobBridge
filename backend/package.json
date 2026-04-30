@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "node --watch src/app.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "seed:admin": "node scripts/seed-admin.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
