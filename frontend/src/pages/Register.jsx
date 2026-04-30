@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import './Login.css'
 
 export default function Register() {
     const navigate = useNavigate()
+    const { register } = useAuth()
     const [step, setStep] = useState(1)
     const [role, setRole] = useState('job_seeker')
     const [formData, setFormData] = useState({
@@ -12,6 +14,8 @@ export default function Register() {
         confirmPassword: '',
     })
     const [errors, setErrors] = useState({})
+    const [loading, setLoading] = useState(false)
+    const [apiError, setApiError] = useState('')
 
     const validate = () => {
         const newErrors = {}
@@ -38,16 +42,27 @@ export default function Register() {
         const { name, value } = e.target
         setFormData((prev) => ({ ...prev, [name]: value }))
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
+        if (apiError) setApiError('')
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         if (step === 1) {
             setStep(2)
             return
         }
         if (!validate()) return
-        navigate('/dang-nhap')
+
+        setLoading(true)
+        setApiError('')
+        try {
+            await register(formData.email, formData.password, role)
+            navigate('/')
+        } catch (err) {
+            setApiError(err.message || 'Đăng ký thất bại')
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -129,8 +144,10 @@ export default function Register() {
                                 {errors.confirmPassword && <span className="form-error">{errors.confirmPassword}</span>}
                             </div>
 
-                            <button type="submit" className="btn btn-primary auth-submit">
-                                Đăng ký
+                            {apiError && <div className="auth-api-error">{apiError}</div>}
+
+                            <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+                                {loading ? 'Đang xử lý...' : 'Đăng ký'}
                             </button>
                         </>
                     )}

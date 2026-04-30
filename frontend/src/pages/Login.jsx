@@ -1,12 +1,18 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import './Login.css'
 
 export default function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || '/'
+  const { login } = useAuth()
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState('')
 
   const validate = () => {
     const newErrors = {}
@@ -28,12 +34,27 @@ export default function Login() {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
+    if (apiError) setApiError('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
-    navigate('/')
+
+    setLoading(true)
+    setApiError('')
+    try {
+      const userData = await login(formData.email, formData.password)
+      if (userData.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate(redirectTo)
+      }
+    } catch (err) {
+      setApiError(err.message || 'Đăng nhập thất bại')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -81,8 +102,10 @@ export default function Login() {
             {errors.password && <span className="form-error">{errors.password}</span>}
           </div>
 
-          <button type="submit" className="btn btn-primary auth-submit">
-            Đăng nhập
+          {apiError && <div className="auth-api-error">{apiError}</div>}
+
+          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
         </form>
 

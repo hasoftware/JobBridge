@@ -11,7 +11,7 @@ const validate = (schema) => (req, res, next) => {
 
 const passwordValidator = Joi.string()
     .min(8)
-    .max(72) // matching bcrypt's max password length
+    .max(72)
     .pattern(/[A-Z]/, "uppercase letter")
     .pattern(/[a-z]/, "lowercase letter")
     .pattern(/[0-9]/, "number")
@@ -39,27 +39,23 @@ const humanText = Joi.extend((joi) => ({
                     return helpers.error("humanText.empty")
                 }
 
-                // Must contain letters
                 if (!/[a-zA-Z]/.test(sanitized)) {
                     return helpers.error("humanText.notHuman")
                 }
 
-                // Must contain vowels (English-like heuristic)
                 if (!/[aeiouAEIOU]/.test(sanitized)) {
                     return helpers.error("humanText.notHuman")
                 }
 
-                // Reject if all symbols / numbers
                 if (/^[\d\W]+$/.test(sanitized)) {
                     return helpers.error("humanText.notHuman")
                 }
 
-                // Reject long repeated characters ("aaaaaaa", "!!!!!!!")
                 if (/^(.)\1{4,}$/.test(sanitized)) {
                     return helpers.error("humanText.notHuman")
                 }
 
-                return sanitized // safe output
+                return sanitized
             },
         },
     },
@@ -67,14 +63,13 @@ const humanText = Joi.extend((joi) => ({
 
 const schemas = {
     register: Joi.object({
-        // name:     Joi.string().min(2).max(50).required(), // update name in the future
-        email: Joi.string().email().required(),
+        email: Joi.string().email({ tlds: { allow: false } }).required(),
         password: passwordValidator,
         role: Joi.string().valid("job_seeker", "recruiter").default("job_seeker"),
     }),
 
     login: Joi.object({
-        email: Joi.string().email().required(),
+        email: Joi.string().email({ tlds: { allow: false } }).required(),
         password: passwordValidator,
     }),
 
