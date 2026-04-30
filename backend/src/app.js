@@ -9,6 +9,7 @@ const { errorHandler, notFoundHandler } = require("./middleware/error")
 const authRoutes = require("./routes/auth")
 const jobsRoutes = require("./routes/jobs")
 const adminRoutes = require("./routes/admin")
+const templatesRoutes = require("./routes/templates")
 
 const app = express()
 
@@ -30,6 +31,7 @@ app.get("/health", (req, res) => {
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/jobs", jobsRoutes)
 app.use("/api/v1/admin", adminRoutes)
+app.use("/api/v1/templates/preview", templatesRoutes)
 
 app.use("/api", notFoundHandler)
 app.use(errorHandler)
