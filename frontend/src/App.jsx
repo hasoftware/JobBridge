@@ -32,7 +32,7 @@ function PageLoader() {
     )
 }
 
-const GUARD_EXEMPT = ["/onboarding", "/verify-email", "/oauth/callback", "/dang-nhap", "/dang-ky"]
+const GUARD_EXEMPT = ["/onboarding", "/verify-email", "/oauth/callback", "/login", "/register"]
 
 function AuthGuardRedirect() {
     const { user, isAuthenticated, isVerified } = useAuth()
@@ -60,12 +60,12 @@ export default function App() {
                 <Routes>
                     <Route element={<Layout />}>
                         <Route index element={<Home />} />
-                        <Route path="viec-lam" element={<Jobs />} />
-                        <Route path="viec-lam/:id" element={<JobDetail />} />
-                        <Route path="cong-ty/:name" element={<CompanyPage />} />
-                        <Route path="tao-cv" element={<CVBuilder />} />
-                        <Route path="dang-nhap" element={<Login />} />
-                        <Route path="dang-ky" element={<Register />} />
+                        <Route path="jobs" element={<Jobs />} />
+                        <Route path="jobs/:id" element={<JobDetail />} />
+                        <Route path="companies/:name" element={<CompanyPage />} />
+                        <Route path="cv-builder" element={<CVBuilder />} />
+                        <Route path="login" element={<Login />} />
+                        <Route path="register" element={<Register />} />
                         <Route path="onboarding" element={<Onboarding />} />
                         <Route path="verify-email" element={<VerifyEmail />} />
                         <Route path="*" element={<NotFound />} />

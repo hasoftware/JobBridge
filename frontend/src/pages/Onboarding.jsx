@@ -13,7 +13,7 @@ export default function Onboarding() {
     setLoading(true)
     try {
       await completeOnboarding(role)
-      navigate(role === 'recruiter' ? '/dashboard' : '/viec-lam')
+      navigate(role === 'recruiter' ? '/dashboard' : '/jobs')
     } catch (err) {
       alert(err.message || 'Có lỗi xảy ra')
     } finally {

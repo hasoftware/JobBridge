@@ -21,7 +21,7 @@ export default function Home() {
         const params = new URLSearchParams()
         if (keyword) params.set('q', keyword)
         if (location) params.set('loc', location)
-        navigate(`/viec-lam?${params.toString()}`)
+        navigate(`/jobs?${params.toString()}`)
     }
 
     return (
@@ -84,7 +84,7 @@ export default function Home() {
                 <div className="container">
                     <h2>Bạn là nhà tuyển dụng?</h2>
                     <p>Đăng tin tuyển dụng và tiếp cận hàng ngàn ứng viên chất lượng</p>
-                    <button className="btn btn-primary" onClick={() => navigate('/dang-ky')}>Đăng tin ngay</button>
+                    <button className="btn btn-primary" onClick={() => navigate('/register')}>Đăng tin ngay</button>
                 </div>
             </section>
         </div>

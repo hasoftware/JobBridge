@@ -29,7 +29,7 @@ export default function Footer() {
           <div>
             <div className="footer-col-title">Dành cho ứng viên</div>
             <div className="footer-links">
-              <Link to="/viec-lam">Việc làm mới nhất</Link>
+              <Link to="/jobs">Việc làm mới nhất</Link>
               <a href="#">Việc làm tốt nhất</a>
               <a href="#">Việc làm lương cao</a>
               <a href="#">Việc làm IT</a>

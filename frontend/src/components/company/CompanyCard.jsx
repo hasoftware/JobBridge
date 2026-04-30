@@ -3,7 +3,7 @@ import './CompanyCard.css'
 
 export default function CompanyCard({ company }) {
   return (
-    <Link to={`/cong-ty/${company.name}`} className="company-card">
+    <Link to={`/companies/${company.name}`} className="company-card">
       <div
         className="company-banner"
         style={{ background: `linear-gradient(135deg, ${company.bannerColor?.[0] || '#dbeafe'}, ${company.bannerColor?.[1] || '#eff6ff'})` }}

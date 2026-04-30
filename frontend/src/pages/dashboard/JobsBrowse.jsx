@@ -40,7 +40,7 @@ export default function JobsBrowse() {
         {sorted.map((job) => (
           <div key={job.id} className="browse-item">
             <div className="browse-info">
-              <Link to={`/viec-lam/${job.id}`} className="browse-title">{job.title}</Link>
+              <Link to={`/jobs/${job.id}`} className="browse-title">{job.title}</Link>
               <div className="browse-company">{job.company}</div>
               <div className="browse-meta">
                 <span>{job.location}</span>
@@ -52,7 +52,7 @@ export default function JobsBrowse() {
               <button onClick={() => toggleSave(job.id)}>
                 {job.saved ? 'Đã lưu' : 'Lưu'}
               </button>
-              <Link to={`/viec-lam/${job.id}`} className="btn btn-primary">Ứng tuyển</Link>
+              <Link to={`/jobs/${job.id}`} className="btn btn-primary">Ứng tuyển</Link>
             </div>
           </div>
         ))}

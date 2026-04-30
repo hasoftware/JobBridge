@@ -27,14 +27,14 @@ export default function SavedJobs() {
       {jobs.length === 0 ? (
         <div className="dashboard-empty">
           <p>Bạn chưa lưu công việc nào</p>
-          <Link to="/viec-lam" className="btn btn-primary">Tìm việc</Link>
+          <Link to="/jobs" className="btn btn-primary">Tìm việc</Link>
         </div>
       ) : (
         <div className="saved-list">
           {jobs.map((job) => (
             <div key={job.id} className="saved-item">
               <div className="saved-info">
-                <Link to={`/viec-lam/${job.id}`} className="saved-title">{job.title}</Link>
+                <Link to={`/jobs/${job.id}`} className="saved-title">{job.title}</Link>
                 <div className="saved-company">{job.company}</div>
                 <div className="saved-meta">
                   <span>{job.location}</span>

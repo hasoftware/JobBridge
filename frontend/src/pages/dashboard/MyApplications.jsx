@@ -53,7 +53,7 @@ export default function MyApplications() {
           {filtered.map((app) => (
             <div key={app.id} className="application-item">
               <div className="application-info">
-                <Link to={`/viec-lam/${app.id}`} className="application-title">
+                <Link to={`/jobs/${app.id}`} className="application-title">
                   {app.job_title}
                 </Link>
                 <div className="application-company">{app.company}</div>

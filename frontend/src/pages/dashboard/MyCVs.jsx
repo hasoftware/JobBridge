@@ -24,7 +24,7 @@ export default function MyCVs() {
     <div className="dashboard-page">
       <div className="dashboard-page-header">
         <h1>CV của tôi</h1>
-        <Link to="/tao-cv" className="btn btn-primary">+ Tạo CV mới</Link>
+        <Link to="/cv-builder" className="btn btn-primary">+ Tạo CV mới</Link>
       </div>
 
       {loading ? (
@@ -32,7 +32,7 @@ export default function MyCVs() {
       ) : cvs.length === 0 ? (
         <div className="dashboard-empty">
           <p>Bạn chưa có CV nào</p>
-          <Link to="/tao-cv" className="btn btn-primary">Tạo CV đầu tiên</Link>
+          <Link to="/cv-builder" className="btn btn-primary">Tạo CV đầu tiên</Link>
         </div>
       ) : (
         <div className="cv-list">
@@ -44,7 +44,7 @@ export default function MyCVs() {
               </div>
               <div className="cv-list-actions">
                 <a href={cv.file_url} target="_blank" rel="noreferrer">Xem</a>
-                <Link to={`/tao-cv?id=${cv.id}`}>Sửa</Link>
+                <Link to={`/cv-builder?id=${cv.id}`}>Sửa</Link>
                 <button onClick={() => handleDelete(cv.id)}>Xoá</button>
               </div>
             </div>

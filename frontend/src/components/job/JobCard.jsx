@@ -14,7 +14,7 @@ const formatSalary = (job) => {
 
 export default function JobCard({ job }) {
   return (
-    <Link to={`/viec-lam/${job.id}`} className="job-card">
+    <Link to={`/jobs/${job.id}`} className="job-card">
       <div className="job-card-header">
         <div className="job-card-logo">
           {job.company_logo ? (

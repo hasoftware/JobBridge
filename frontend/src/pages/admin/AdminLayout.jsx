@@ -5,10 +5,10 @@ import './AdminLayout.css'
 
 const NAV_ITEMS = [
   { path: '', label: 'Tổng quan', exact: true },
-  { path: 'nguoi-dung', label: 'Người dùng' },
-  { path: 'tin-tuyen-dung', label: 'Tin tuyển dụng' },
-  { path: 'cong-ty', label: 'Công ty' },
-  { path: 'bao-cao', label: 'Báo cáo' },
+  { path: 'users', label: 'Người dùng' },
+  { path: 'jobs', label: 'Tin tuyển dụng' },
+  { path: 'companies', label: 'Công ty' },
+  { path: 'reports', label: 'Báo cáo' },
 ]
 
 export default function AdminLayout() {
@@ -17,7 +17,7 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   if (!isAuthenticated) {
-    return <Navigate to="/dang-nhap?redirect=/admin" replace />
+    return <Navigate to="/login?redirect=/admin" replace />
   }
 
   if (user?.role !== 'admin') {

@@ -154,7 +154,7 @@ export default function Register() {
                 </form>
 
                 <p className="auth-footer">
-                    Đã có tài khoản? <Link to="/dang-nhap">Đăng nhập</Link>
+                    Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
                 </p>
             </div>
         </div>

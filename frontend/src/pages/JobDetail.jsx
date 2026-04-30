@@ -36,7 +36,7 @@ export default function JobDetail() {
   const handleApply = async () => {
     if (!isAuthenticated) {
       addToast('Vui lòng đăng nhập để ứng tuyển', 'info')
-      navigate(`/dang-nhap?redirect=/viec-lam/${id}`)
+      navigate(`/login?redirect=/jobs/${id}`)
       return
     }
     setApplying(true)
@@ -68,7 +68,7 @@ export default function JobDetail() {
           </div>
           <div className="job-detail-info">
             <h1 className="job-detail-title">{job.title}</h1>
-            <Link to={`/cong-ty/${job.company_name}`} className="job-detail-company">
+            <Link to={`/companies/${job.company_name}`} className="job-detail-company">
               {job.company_name}
             </Link>
             <div className="job-detail-meta">

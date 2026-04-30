@@ -5,16 +5,16 @@ import './Dashboard.css'
 
 const CANDIDATE_NAV = [
   { path: 'cv', label: 'CV của tôi' },
-  { path: 'don-ung-tuyen', label: 'Đơn ứng tuyển' },
-  { path: 'viec-da-luu', label: 'Việc đã lưu' },
-  { path: 'ho-so', label: 'Hồ sơ' },
+  { path: 'applications', label: 'Đơn ứng tuyển' },
+  { path: 'saved-jobs', label: 'Việc đã lưu' },
+  { path: 'profile', label: 'Hồ sơ' },
 ]
 
 const RECRUITER_NAV = [
-  { path: 'tin-tuyen-dung', label: 'Tin tuyển dụng' },
-  { path: 'ung-vien', label: 'Ứng viên' },
-  { path: 'cong-ty', label: 'Hồ sơ công ty' },
-  { path: 'tim-kiem', label: 'Tìm ứng viên' },
+  { path: 'jobs', label: 'Tin tuyển dụng' },
+  { path: 'applicants', label: 'Ứng viên' },
+  { path: 'companies', label: 'Hồ sơ công ty' },
+  { path: 'search', label: 'Tìm ứng viên' },
 ]
 
 export default function Dashboard() {
