@@ -3,6 +3,24 @@ import { auth, token } from '../services/api'
 
 const AuthContext = createContext(null)
 
+const PENDING_KEY = 'jb_pending'
+
+function getPending() {
+  try {
+    return JSON.parse(localStorage.getItem(PENDING_KEY) || 'null')
+  } catch {
+    return null
+  }
+}
+
+function setPending(data) {
+  localStorage.setItem(PENDING_KEY, JSON.stringify(data))
+}
+
+function clearPending() {
+  localStorage.removeItem(PENDING_KEY)
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
@@ -35,9 +53,53 @@ export function AuthProvider({ children }) {
   }, [persist])
 
   const register = useCallback(async (email, password, role) => {
-    await auth.register(email, password, role)
-    return login(email, password)
-  }, [login])
+    const data = await auth.register(email, password, role)
+    setPending({
+      token: data.pending_token,
+      email: data.email,
+      expires_at: Date.now() + (data.expires_in || 600) * 1000,
+    })
+    return data
+  }, [])
+
+  const verifyEmail = useCallback(async (code) => {
+    const pending = getPending()
+    if (!pending?.token) {
+      const err = new Error('Phiên đăng ký không tồn tại, vui lòng đăng ký lại')
+      err.expired = true
+      throw err
+    }
+
+    const data = await auth.verifyEmail(pending.token, code)
+    token.set(data.access_token, data.refresh_token)
+    clearPending()
+    return persist({
+      email: data.email,
+      role: data.role,
+      is_verified: true,
+    })
+  }, [persist])
+
+  const resendOtp = useCallback(async () => {
+    const pending = getPending()
+    if (!pending?.token) {
+      throw new Error('Phiên đăng ký không tồn tại, vui lòng đăng ký lại')
+    }
+
+    const data = await auth.resendOtp(pending.token)
+    setPending({
+      token: data.pending_token,
+      email: data.email,
+      expires_at: Date.now() + (data.expires_in || 600) * 1000,
+    })
+    return data
+  }, [])
+
+  const cancelRegistration = useCallback(() => {
+    clearPending()
+  }, [])
+
+  const getPendingEmail = useCallback(() => getPending()?.email || null, [])
 
   const logout = useCallback(async () => {
     try {
@@ -59,6 +121,10 @@ export function AuthProvider({ children }) {
       isVerified,
       login,
       register,
+      verifyEmail,
+      resendOtp,
+      cancelRegistration,
+      getPendingEmail,
       logout,
       getUser,
     }}>

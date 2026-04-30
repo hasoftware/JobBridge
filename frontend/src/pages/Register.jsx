@@ -77,7 +77,7 @@ export default function Register() {
         setApiErrorList([])
         try {
             await register(formData.email, formData.password, role)
-            navigate('/')
+            navigate('/verify-email')
         } catch (err) {
             if (err.errors && err.errors.length > 0) {
                 setApiErrorList(err.errors)

@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { path: 'jobs', label: 'Tin tuyển dụng' },
   { path: 'companies', label: 'Công ty' },
   { path: 'reports', label: 'Báo cáo' },
+  { path: 'settings/email', label: 'Cấu hình' },
 ]
 
 export default function AdminLayout() {

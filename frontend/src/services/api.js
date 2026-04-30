@@ -49,4 +49,21 @@ export const auth = {
     body: JSON.stringify({ email, password, role }),
   }),
   logout: () => apiFetch("/auth/logout", { method: "POST" }),
+  verifyEmail: (pending_token, code) => apiFetch("/auth/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ pending_token, code }),
+  }),
+  resendOtp: (pending_token) => apiFetch("/auth/resend-otp", {
+    method: "POST",
+    body: JSON.stringify({ pending_token }),
+  }),
+}
+
+export const admin = {
+  getEmailSettings: () => apiFetch("/admin/settings/email"),
+  saveEmailSettings: (config) => apiFetch("/admin/settings/email", {
+    method: "PUT",
+    body: JSON.stringify(config),
+  }),
+  testEmailSettings: () => apiFetch("/admin/settings/email/test", { method: "POST" }),
 }

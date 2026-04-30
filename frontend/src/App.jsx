@@ -23,6 +23,7 @@ const NotFound = lazy(() => import("./pages/NotFound"))
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"))
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
+const EmailSettings = lazy(() => import("./pages/admin/EmailSettings"))
 
 function PageLoader() {
     return (
@@ -74,6 +75,7 @@ export default function App() {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
+                        <Route path="settings/email" element={<EmailSettings />} />
                     </Route>
                     <Route path="oauth/callback" element={<OAuthCallback />} />
                 </Routes>

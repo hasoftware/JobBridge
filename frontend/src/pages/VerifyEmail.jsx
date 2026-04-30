@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import './Login.css'
@@ -8,13 +8,27 @@ const RESEND_SEC = 60
 
 export default function VerifyEmail() {
   const navigate = useNavigate()
-  const { user, sendVerificationOtp, verifyEmail } = useAuth()
+  const { verifyEmail, resendOtp, cancelRegistration, getPendingEmail } = useAuth()
 
+  const [pendingEmail, setPendingEmail] = useState(() => getPendingEmail())
   const [code, setCode] = useState(Array(OTP_LENGTH).fill(''))
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [resendIn, setResendIn] = useState(0)
   const inputsRef = useRef([])
+
+  useEffect(() => {
+    if (!pendingEmail) navigate('/register', { replace: true })
+  }, [pendingEmail, navigate])
+
+  const handleChangeEmail = () => {
+    const ok = window.confirm(
+      'Phiên đăng ký hiện tại sẽ bị huỷ. Bạn muốn đăng ký lại với email khác?'
+    )
+    if (!ok) return
+    cancelRegistration()
+    navigate('/register', { replace: true })
+  }
 
   const handleChange = (index, value) => {
     if (!/^\d*$/.test(value)) return
@@ -41,10 +55,15 @@ export default function VerifyEmail() {
     }
 
     setLoading(true)
+    setError('')
     try {
       await verifyEmail(otp)
-      navigate('/dashboard')
+      navigate('/')
     } catch (err) {
+      if (err.expired) {
+        navigate('/register', { replace: true })
+        return
+      }
       setError(err.message || 'Mã OTP không đúng')
     } finally {
       setLoading(false)
@@ -52,8 +71,10 @@ export default function VerifyEmail() {
   }
 
   const handleResend = async () => {
+    setError('')
     try {
-      await sendVerificationOtp()
+      await resendOtp()
+      setPendingEmail(getPendingEmail())
       setResendIn(RESEND_SEC)
       const timer = setInterval(() => {
         setResendIn((s) => {
@@ -75,7 +96,7 @@ export default function VerifyEmail() {
         <div className="auth-header">
           <h1 className="auth-title">Xác thực email</h1>
           <p className="auth-subtitle">
-            Chúng tôi đã gửi mã OTP 6 chữ số tới <strong>{user?.email || 'email của bạn'}</strong>
+            Chúng tôi đã gửi mã OTP 6 chữ số tới <strong>{pendingEmail || 'email của bạn'}</strong>
           </p>
         </div>
 
@@ -110,6 +131,12 @@ export default function VerifyEmail() {
             {resendIn > 0 ? `Gửi lại sau ${resendIn}s` : 'Gửi lại mã'}
           </button>
         </form>
+
+        <p className="auth-footer">
+          <button type="button" className="link-btn" onClick={handleChangeEmail}>
+            Thay đổi email
+          </button>
+        </p>
       </div>
     </div>
   )

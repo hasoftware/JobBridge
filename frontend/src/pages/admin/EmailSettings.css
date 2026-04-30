@@ -1,0 +1,101 @@
+.email-settings {
+  max-width: 720px;
+}
+
+.settings-header {
+  margin-bottom: 24px;
+}
+
+.settings-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--jb-text-primary);
+  margin: 0 0 6px;
+}
+
+.settings-header p {
+  font-size: 14px;
+  color: var(--jb-text-secondary);
+  margin: 0;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--jb-surface-1);
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius-lg);
+  padding: 24px;
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--jb-text-primary);
+}
+
+.settings-field input,
+.settings-field select {
+  padding: 10px 12px;
+  border: 1px solid var(--jb-border-strong);
+  border-radius: var(--jb-radius-md);
+  font-size: 14px;
+  color: var(--jb-text-primary);
+  background: var(--jb-surface-1);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.settings-field input:focus,
+.settings-field select:focus {
+  border-color: var(--jb-primary);
+}
+
+.settings-hint {
+  font-size: 12px;
+  color: var(--jb-text-tertiary);
+}
+
+.settings-message {
+  padding: 10px 14px;
+  border-radius: var(--jb-radius-md);
+  font-size: 13px;
+}
+
+.settings-message.success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.settings-message.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .settings-row {
+    grid-template-columns: 1fr;
+  }
+}

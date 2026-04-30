@@ -342,6 +342,20 @@
     cursor: not-allowed;
 }
 
+.link-btn {
+    background: none;
+    border: none;
+    color: var(--jb-primary);
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+    text-decoration: underline;
+}
+
+.link-btn:hover {
+    color: var(--jb-primary-dark);
+}
+
 @media (max-width: 480px) {
     .otp-inputs input {
         width: 40px;
