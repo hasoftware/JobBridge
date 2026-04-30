@@ -1,0 +1,115 @@
+.notfound {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--jb-surface-0);
+}
+
+.notfound-content {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  max-width: 720px;
+  animation: notfound-fade 0.4s ease;
+}
+
+.notfound-code {
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -3px;
+  color: var(--jb-text-primary);
+  background: linear-gradient(135deg, var(--jb-primary), var(--jb-primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.notfound-divider {
+  width: 1px;
+  height: 80px;
+  background: var(--jb-border-strong);
+}
+
+.notfound-message h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--jb-text-primary);
+  margin: 0 0 8px;
+}
+
+.notfound-message p {
+  font-size: 14px;
+  color: var(--jb-text-secondary);
+  margin: 0 0 20px;
+  line-height: 1.6;
+  max-width: 420px;
+}
+
+.notfound-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.notfound-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: var(--jb-radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.notfound-btn.primary {
+  background: var(--jb-primary);
+  color: #fff;
+}
+
+.notfound-btn.primary:hover {
+  background: var(--jb-primary-dark);
+  transform: translateY(-1px);
+}
+
+.notfound-btn.ghost {
+  background: transparent;
+  color: var(--jb-text-secondary);
+  border-color: var(--jb-border-strong);
+}
+
+.notfound-btn.ghost:hover {
+  background: var(--jb-surface-2);
+  color: var(--jb-text-primary);
+}
+
+@keyframes notfound-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .notfound-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .notfound-divider {
+    width: 80px;
+    height: 1px;
+  }
+
+  .notfound-code {
+    font-size: 80px;
+  }
+
+  .notfound-actions {
+    justify-content: center;
+  }
+}
