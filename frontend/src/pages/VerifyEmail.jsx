@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import './Login.css'
 
 const OTP_LENGTH = 6
 const RESEND_SEC = 60
@@ -71,8 +72,12 @@ export default function VerifyEmail() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>Xác thực email</h1>
-        <p>Mã OTP đã được gửi tới {user?.email}</p>
+        <div className="auth-header">
+          <h1 className="auth-title">Xác thực email</h1>
+          <p className="auth-subtitle">
+            Chúng tôi đã gửi mã OTP 6 chữ số tới <strong>{user?.email || 'email của bạn'}</strong>
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="otp-form">
           <div className="otp-inputs">

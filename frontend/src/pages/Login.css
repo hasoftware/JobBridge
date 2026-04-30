@@ -287,3 +287,65 @@
     font-size: 14px;
     color: var(--jb-text-secondary);
 }
+
+.otp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.otp-inputs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 8px 0 4px;
+}
+
+.otp-inputs input {
+    width: 48px;
+    height: 56px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--jb-text-primary);
+    background: var(--jb-surface-1);
+    border: 1.5px solid var(--jb-border-strong);
+    border-radius: var(--jb-radius-md);
+    outline: none;
+    caret-color: var(--jb-primary);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.otp-inputs input:focus {
+    border-color: var(--jb-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.resend-btn {
+    background: transparent;
+    border: none;
+    color: var(--jb-primary);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 6px;
+    text-align: center;
+    transition: color 0.15s;
+}
+
+.resend-btn:hover:not(:disabled) {
+    color: var(--jb-primary-dark);
+    text-decoration: underline;
+}
+
+.resend-btn:disabled {
+    color: var(--jb-text-tertiary);
+    cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .otp-inputs input {
+        width: 40px;
+        height: 48px;
+        font-size: 18px;
+    }
+}
