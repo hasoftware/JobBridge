@@ -21,6 +21,8 @@ import Dashboard from "./pages/Dashboard"
 // const Dashboard = lazy(() => import('./pages/Dashboard'))
 const NotFound = lazy(() => import("./pages/NotFound"))
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"))
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
 
 function PageLoader() {
     return (
@@ -70,6 +72,9 @@ export default function App() {
                     </Route>
                     {/* Dashboard has its own layout (no navbar/footer) */}
                     <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="admin" element={<AdminLayout />}>
+                        <Route index element={<AdminDashboard />} />
+                    </Route>
                     <Route path="oauth/callback" element={<OAuthCallback />} />
                 </Routes>
             </Suspense>
