@@ -28,7 +28,13 @@ async function apiFetch(path, options = {}) {
   const data = await res.json().catch(() => ({}))
 
   if (!res.ok) {
-    throw new Error(data.message || `Request failed: ${res.status}`)
+    const message = data.message
+      || (Array.isArray(data.errors) ? data.errors.join("; ") : null)
+      || `Request failed: ${res.status}`
+    const err = new Error(message)
+    err.status = res.status
+    err.errors = Array.isArray(data.errors) ? data.errors : []
+    throw err
   }
   return data
 }

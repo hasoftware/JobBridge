@@ -1,8 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import Icon from '../components/common/Icon'
 import './Login.css'
+
+const PASSWORD_RULES = [
+    { key: 'length', label: 'Ít nhất 8 ký tự', test: (p) => p.length >= 8 },
+    { key: 'upper', label: 'Có chữ HOA', test: (p) => /[A-Z]/.test(p) },
+    { key: 'lower', label: 'Có chữ thường', test: (p) => /[a-z]/.test(p) },
+    { key: 'number', label: 'Có chữ số', test: (p) => /[0-9]/.test(p) },
+    { key: 'special', label: 'Có ký tự đặc biệt (!@#$%^&*…)', test: (p) => /[!@#$%^&*()_+\-=]/.test(p) },
+]
 
 export default function Register() {
     const navigate = useNavigate()
@@ -17,6 +25,12 @@ export default function Register() {
     const [errors, setErrors] = useState({})
     const [loading, setLoading] = useState(false)
     const [apiError, setApiError] = useState('')
+    const [apiErrorList, setApiErrorList] = useState([])
+
+    const passwordChecks = useMemo(
+        () => PASSWORD_RULES.map((r) => ({ ...r, ok: r.test(formData.password) })),
+        [formData.password],
+    )
 
     const validate = () => {
         const newErrors = {}
@@ -27,8 +41,11 @@ export default function Register() {
         }
         if (!formData.password) {
             newErrors.password = 'Vui lòng nhập mật khẩu'
-        } else if (formData.password.length < 8) {
-            newErrors.password = 'Mật khẩu phải có ít nhất 8 ký tự'
+        } else {
+            const failed = passwordChecks.filter((c) => !c.ok)
+            if (failed.length > 0) {
+                newErrors.password = 'Mật khẩu chưa đáp ứng đủ yêu cầu'
+            }
         }
         if (!formData.confirmPassword) {
             newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu'
@@ -44,6 +61,7 @@ export default function Register() {
         setFormData((prev) => ({ ...prev, [name]: value }))
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
         if (apiError) setApiError('')
+        if (apiErrorList.length) setApiErrorList([])
     }
 
     const handleSubmit = async (e) => {
@@ -56,11 +74,16 @@ export default function Register() {
 
         setLoading(true)
         setApiError('')
+        setApiErrorList([])
         try {
             await register(formData.email, formData.password, role)
             navigate('/')
         } catch (err) {
-            setApiError(err.message || 'Đăng ký thất bại')
+            if (err.errors && err.errors.length > 0) {
+                setApiErrorList(err.errors)
+            } else {
+                setApiError(err.message || 'Đăng ký thất bại')
+            }
         } finally {
             setLoading(false)
         }
@@ -145,6 +168,16 @@ export default function Register() {
                                     value={formData.password}
                                     onChange={handleChange}
                                 />
+                                {formData.password && (
+                                    <ul className="password-rules">
+                                        {passwordChecks.map((c) => (
+                                            <li key={c.key} className={c.ok ? 'ok' : ''}>
+                                                <span className="password-rule-mark">{c.ok ? '✓' : '○'}</span>
+                                                {c.label}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                                 {errors.password && <span className="form-error">{errors.password}</span>}
                             </div>
 
@@ -162,6 +195,13 @@ export default function Register() {
                             </div>
 
                             {apiError && <div className="auth-api-error">{apiError}</div>}
+                            {apiErrorList.length > 0 && (
+                                <div className="auth-api-error">
+                                    <ul className="api-error-list">
+                                        {apiErrorList.map((msg, i) => <li key={i}>{msg}</li>)}
+                                    </ul>
+                                </div>
+                            )}
 
                             <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
                                 {loading ? 'Đang xử lý...' : 'Đăng ký'}
