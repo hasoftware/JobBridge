@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import Icon from '../components/common/Icon'
 import './Login.css'
 
 export default function Register() {
@@ -78,24 +79,40 @@ export default function Register() {
                 <form className="auth-form" onSubmit={handleSubmit} noValidate>
                     {step === 1 && (
                         <>
-                            <p className="role-label">Bạn là:</p>
-                            <div className="role-grid">
-                                <button
-                                    type="button"
-                                    className={`role-card ${role === 'job_seeker' ? 'active' : ''}`}
-                                    onClick={() => setRole('job_seeker')}
-                                >
-                                    <div className="role-name">Ứng viên</div>
-                                    <div className="role-hint">Tìm việc làm phù hợp</div>
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`role-card ${role === 'recruiter' ? 'active' : ''}`}
-                                    onClick={() => setRole('recruiter')}
-                                >
-                                    <div className="role-name">Nhà tuyển dụng</div>
-                                    <div className="role-hint">Đăng tin tuyển dụng</div>
-                                </button>
+                            <div className="role-section">
+                                <h2 className="role-section-title">Bạn muốn dùng JobBridge với vai trò gì?</h2>
+                                <p className="role-section-desc">Chọn vai trò để chúng tôi cá nhân hoá trải nghiệm phù hợp với bạn.</p>
+
+                                <div className="role-grid">
+                                    <button
+                                        type="button"
+                                        className={`role-card ${role === 'job_seeker' ? 'active' : ''}`}
+                                        onClick={() => setRole('job_seeker')}
+                                    >
+                                        <div className="role-icon-wrap">
+                                            <Icon name="user" />
+                                        </div>
+                                        <div className="role-text">
+                                            <div className="role-name">Ứng viên</div>
+                                            <div className="role-hint">Tạo CV, ứng tuyển và theo dõi đơn</div>
+                                        </div>
+                                        <span className="role-radio" aria-hidden="true" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`role-card ${role === 'recruiter' ? 'active' : ''}`}
+                                        onClick={() => setRole('recruiter')}
+                                    >
+                                        <div className="role-icon-wrap">
+                                            <Icon name="briefcase" />
+                                        </div>
+                                        <div className="role-text">
+                                            <div className="role-name">Nhà tuyển dụng</div>
+                                            <div className="role-hint">Đăng tin và tìm ứng viên phù hợp</div>
+                                        </div>
+                                        <span className="role-radio" aria-hidden="true" />
+                                    </button>
+                                </div>
                             </div>
                             <button type="submit" className="btn btn-primary auth-submit">
                                 Tiếp tục
