@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
 import './Login.css'
 
 export default function Login() {
@@ -9,6 +10,7 @@ export default function Login() {
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
   const { login } = useAuth()
+  const { addToast } = useToast()
   const prefilledEmail = location.state?.email || ''
   const [formData, setFormData] = useState({ email: prefilledEmail, password: '' })
   const [errors, setErrors] = useState({})
@@ -47,6 +49,7 @@ export default function Login() {
     setApiError('')
     try {
       const userData = await login(formData.email, formData.password)
+      addToast('Đăng nhập thành công', 'success')
       if (userData.role === 'admin') {
         navigate('/admin')
       } else {
