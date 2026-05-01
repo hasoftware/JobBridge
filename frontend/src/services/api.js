@@ -116,6 +116,26 @@ export const auth = {
     method: "DELETE",
     body: JSON.stringify({ current_refresh_token }),
   }),
+  twoFA: {
+    status: () => apiFetch("/auth/2fa/status"),
+    setup: () => apiFetch("/auth/2fa/setup", { method: "POST" }),
+    enable: (secret, code) => apiFetch("/auth/2fa/enable", {
+      method: "POST",
+      body: JSON.stringify({ secret, code }),
+    }),
+    disable: (password, code) => apiFetch("/auth/2fa/disable", {
+      method: "POST",
+      body: JSON.stringify({ password, code }),
+    }),
+    regenerateBackupCodes: (code) => apiFetch("/auth/2fa/regenerate-backup-codes", {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    }),
+    verify: (pending_2fa_token, code) => apiFetch("/auth/2fa/verify", {
+      method: "POST",
+      body: JSON.stringify({ pending_2fa_token, code }),
+    }),
+  },
   getNotificationSettings: () => apiFetch("/auth/notification-settings"),
   updateNotificationSettings: (payload) => apiFetch("/auth/notification-settings", {
     method: "PATCH",

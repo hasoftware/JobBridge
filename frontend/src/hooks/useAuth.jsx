@@ -44,6 +44,21 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const data = await auth.login(email, password)
+    if (data.requires_2fa) {
+      return { requires_2fa: true, pending_2fa_token: data.pending_2fa_token }
+    }
+    token.set(data.access_token, data.refresh_token)
+    return persist({
+      public_id: data.public_id || null,
+      email: data.email,
+      full_name: data.full_name || '',
+      role: data.role,
+      is_verified: !!data.is_verified,
+    })
+  }, [persist])
+
+  const completeTwoFA = useCallback(async (pending_token, code) => {
+    const data = await auth.twoFA.verify(pending_token, code)
     token.set(data.access_token, data.refresh_token)
     return persist({
       public_id: data.public_id || null,
@@ -139,6 +154,7 @@ export function AuthProvider({ children }) {
       isAdmin,
       isVerified,
       login,
+      completeTwoFA,
       register,
       verifyEmail,
       resendOtp,

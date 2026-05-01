@@ -12,6 +12,9 @@ CREATE TABLE users (
     address jsonb,
     bio text,
     notification_settings jsonb,
+    two_factor_enabled boolean DEFAULT false,
+    two_factor_secret text,
+    two_factor_backup_codes text[],
     role text DEFAULT 'job_seeker' NOT NULL CHECK (role IN ('job_seeker', 'recruiter', 'admin')),
     is_verified boolean DEFAULT false,
     created_at timestamp DEFAULT CURRENT_TIMESTAMP
