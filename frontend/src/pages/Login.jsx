@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import './Login.css'
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
   const { login } = useAuth()
-  const [formData, setFormData] = useState({ email: '', password: '' })
+  const prefilledEmail = location.state?.email || ''
+  const [formData, setFormData] = useState({ email: prefilledEmail, password: '' })
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)

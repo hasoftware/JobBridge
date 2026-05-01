@@ -121,20 +121,10 @@ router.post("/verify-email", async (req, res, next) => {
             await pool.query("INSERT INTO companies(user_id) VALUES($1)", [user.id])
         }
 
-        const { accessToken, refreshToken } = signTokens(user)
-        const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex")
-
-        await pool.query(
-            "INSERT INTO refresh_tokens(user_id, token, expires_at) VALUES($1, $2, NOW() + INTERVAL '30 days')",
-            [user.id, tokenHash],
-        )
-
         res.json({
-            access_token: accessToken,
-            refresh_token: refreshToken,
+            success: true,
             email: user.email,
             role: user.role,
-            is_verified: true,
         })
     } catch (err) {
         next(err)

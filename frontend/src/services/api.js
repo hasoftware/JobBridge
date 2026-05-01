@@ -16,7 +16,39 @@ export const token = {
   },
 }
 
-async function apiFetch(path, options = {}) {
+let refreshPromise = null
+
+async function refreshAccessToken() {
+  const refresh = token.getRefresh()
+  if (!refresh) throw new Error("no_refresh_token")
+
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refresh }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("refresh_failed")
+        const data = await res.json()
+        token.setAccess(data.access_token)
+        return data.access_token
+      })
+      .finally(() => {
+        refreshPromise = null
+      })
+  }
+  return refreshPromise
+}
+
+function handleAuthFailure() {
+  token.clear()
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.href = "/login"
+  }
+}
+
+async function apiFetch(path, options = {}, _retried = false) {
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -25,6 +57,19 @@ async function apiFetch(path, options = {}) {
   if (access) headers.Authorization = `Bearer ${access}`
 
   const res = await fetch(`${BASE}${path}`, { ...options, headers })
+
+  if (res.status === 401 && access && !_retried && path !== "/auth/refresh") {
+    try {
+      await refreshAccessToken()
+      return apiFetch(path, options, true)
+    } catch {
+      handleAuthFailure()
+      const err = new Error("Phiên đăng nhập đã hết hạn")
+      err.status = 401
+      throw err
+    }
+  }
+
   const data = await res.json().catch(() => ({}))
 
   if (!res.ok) {

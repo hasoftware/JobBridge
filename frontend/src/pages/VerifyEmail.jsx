@@ -57,8 +57,11 @@ export default function VerifyEmail() {
     setLoading(true)
     setError('')
     try {
-      await verifyEmail(otp)
-      navigate('/')
+      const data = await verifyEmail(otp)
+      navigate('/register-success', {
+        replace: true,
+        state: { email: data.email },
+      })
     } catch (err) {
       if (err.expired) {
         navigate('/register', { replace: true })

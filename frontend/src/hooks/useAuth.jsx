@@ -71,14 +71,9 @@ export function AuthProvider({ children }) {
     }
 
     const data = await auth.verifyEmail(pending.token, code)
-    token.set(data.access_token, data.refresh_token)
     clearPending()
-    return persist({
-      email: data.email,
-      role: data.role,
-      is_verified: true,
-    })
-  }, [persist])
+    return data
+  }, [])
 
   const resendOtp = useCallback(async () => {
     const pending = getPending()

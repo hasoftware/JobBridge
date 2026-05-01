@@ -10,6 +10,7 @@ import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Onboarding from "./pages/Onboarding"
 import VerifyEmail from "./pages/VerifyEmail"
+import RegisterSuccess from "./pages/RegisterSuccess"
 import Jobs from "./pages/Jobs"
 // const Jobs = lazy(() => import('./pages/Jobs'))
 import JobDetail from "./pages/JobDetail"
@@ -69,6 +70,7 @@ export default function App() {
                         <Route path="register" element={<Register />} />
                         <Route path="onboarding" element={<Onboarding />} />
                         <Route path="verify-email" element={<VerifyEmail />} />
+                        <Route path="register-success" element={<RegisterSuccess />} />
                         <Route path="*" element={<NotFound />} />
                     </Route>
                     {/* Dashboard has its own layout (no navbar/footer) */}
