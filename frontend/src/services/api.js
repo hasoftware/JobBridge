@@ -166,6 +166,15 @@ export const jobs = {
   unsave: (id) => apiFetch(`/jobs/${id}/save`, { method: "DELETE" }),
 }
 
+export const coverLetters = {
+  list: () => apiFetch("/cover-letters"),
+  get: (id) => apiFetch(`/cover-letters/${id}`),
+  create: (payload) => apiFetch("/cover-letters", { method: "POST", body: JSON.stringify(payload) }),
+  update: (id, payload) => apiFetch(`/cover-letters/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
+  remove: (id) => apiFetch(`/cover-letters/${id}`, { method: "DELETE" }),
+  setDefault: (id) => apiFetch(`/cover-letters/${id}/set-default`, { method: "POST" }),
+}
+
 export const applications = {
   listMine: (params = {}) => {
     const search = new URLSearchParams(params).toString()

@@ -12,6 +12,7 @@ const adminRoutes = require("./routes/admin")
 const templatesRoutes = require("./routes/templates")
 const cvsRoutes = require("./routes/cvs")
 const applicationsRoutes = require("./routes/applications")
+const coverLettersRoutes = require("./routes/coverLetters")
 
 const app = express()
 
@@ -36,6 +37,7 @@ app.use("/api/v1/admin", adminRoutes)
 app.use("/api/v1/templates/preview", templatesRoutes)
 app.use("/api/v1/cvs", cvsRoutes)
 app.use("/api/v1/applications", applicationsRoutes)
+app.use("/api/v1/cover-letters", coverLettersRoutes)
 
 app.use("/api", notFoundHandler)
 app.use(errorHandler)

@@ -20,6 +20,8 @@ import CompanyPage from "./pages/CompanyPage"
 // const CompanyPage = lazy(() => import('./pages/CompanyPage'))
 const CVBuilder = lazy(() => import("./pages/CVBuilder"))
 const CVTemplates = lazy(() => import("./pages/CVTemplates"))
+const CoverLetterBuilder = lazy(() => import("./pages/CoverLetterBuilder"))
+const MyCoverLetters = lazy(() => import("./pages/dashboard/MyCoverLetters"))
 import Dashboard from "./pages/Dashboard"
 // const Dashboard = lazy(() => import('./pages/Dashboard'))
 const NotFound = lazy(() => import("./pages/NotFound"))
@@ -83,6 +85,7 @@ export default function App() {
                         <Route path="companies/:name" element={<CompanyPage />} />
                         <Route path="cv-templates" element={<CVTemplates />} />
                         <Route path="cv-builder" element={<CVBuilder />} />
+                        <Route path="cover-letter-builder" element={<CoverLetterBuilder />} />
                         <Route path="login" element={<GuestOnly><Login /></GuestOnly>} />
                         <Route path="login/2fa" element={<GuestOnly><Login2FA /></GuestOnly>} />
                         <Route path="register" element={<GuestOnly><Register /></GuestOnly>} />
@@ -100,6 +103,7 @@ export default function App() {
                         <Route path="saved-jobs" element={<SavedJobs />} />
                         <Route path="cvs" element={<MyCVs />} />
                         <Route path="applied-jobs" element={<MyApplications />} />
+                        <Route path="cover-letters" element={<MyCoverLetters />} />
                     </Route>
                     <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
