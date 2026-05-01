@@ -1,40 +1,73 @@
 const nodemailer = require("nodemailer")
+const pool = require("../../config/db")
+const { render } = require("./templates")
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-})
+let cachedConfig = null
+let cachedTransporter = null
 
-async function sendEmail(to, subject, html) {
-    const email = await transporter.sendMail({
-        from: `"JobBridge" <${process.env.SMTP_USER}>`,
+async function loadConfig() {
+    const { rows } = await pool.query("SELECT value FROM app_settings WHERE key=$1", ["email"])
+    return rows[0]?.value || null
+}
+
+function configKey(c) {
+    if (!c) return ""
+    return [c.smtp_host, c.smtp_port, c.encryption, c.smtp_user, c.smtp_pass, c.from_email].join("|")
+}
+
+function buildTransporter(config) {
+    return nodemailer.createTransport({
+        host: config.smtp_host,
+        port: Number(config.smtp_port || 587),
+        secure: config.encryption === "ssl",
+        requireTLS: config.encryption === "tls",
+        auth: {
+            user: config.smtp_user,
+            pass: config.smtp_pass,
+        },
+    })
+}
+
+async function getTransporter() {
+    const config = await loadConfig()
+    if (!config || !config.smtp_host || !config.smtp_user || !config.smtp_pass) {
+        const err = new Error("SMTP chưa được cấu hình")
+        err.code = "SMTP_NOT_CONFIGURED"
+        throw err
+    }
+
+    if (cachedTransporter && configKey(cachedConfig) === configKey(config)) {
+        return { transporter: cachedTransporter, config }
+    }
+
+    cachedTransporter = buildTransporter(config)
+    cachedConfig = config
+    return { transporter: cachedTransporter, config }
+}
+
+function invalidateCache() {
+    cachedTransporter = null
+    cachedConfig = null
+}
+
+async function sendMail({ to, subject, html }) {
+    const { transporter, config } = await getTransporter()
+    const fromAddr = config.from_email || config.smtp_user
+    return transporter.sendMail({
+        from: `"JobBridge" <${fromAddr}>`,
         to,
         subject,
         html,
     })
-    
-    console.log(email)  
 }
 
-function otpEmailHtml(code, purpose) {
-    const purposeText = {
-        email_verify: "xác thực email",
-        password_reset: "đặt lại mật khẩu",
-        "2fa_login": "xác minh đăng nhập",
-    }
-
-    return `
-    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f9fafb;border-radius:12px">
-        <h2 style="color:#1e293b;margin:0 0 8px">JobBridge</h2>
-        <p style="color:#64748b;margin:0 0 24px">Mã OTP để ${purposeText[purpose] || purpose}</p>
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:24px;text-align:center">
-            <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#2563eb">${code}</span>
-        </div>
-        <p style="color:#94a3b8;font-size:13px;margin:16px 0 0">Mã có hiệu lực trong 5 phút. Không chia sẻ mã này với bất kỳ ai.</p>
-    </div>`
+async function sendVerifyEmailOtp(email, otp) {
+    const html = render("verify-email", { otp, email })
+    return sendMail({
+        to: email,
+        subject: "Xác thực email JobBridge",
+        html,
+    })
 }
 
-module.exports = { sendEmail, otpEmailHtml }
+module.exports = { sendMail, sendVerifyEmailOtp, invalidateCache }

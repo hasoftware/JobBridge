@@ -1,6 +1,7 @@
 const express = require("express")
 const nodemailer = require("nodemailer")
 const pool = require("../../config/db")
+const { invalidateCache } = require("../utils/email")
 const auth = require("../middleware/auth")
 const { requireRole } = auth
 
@@ -58,6 +59,7 @@ router.put("/settings/email", async (req, res, next) => {
             ["email", JSON.stringify(next)],
         )
 
+        invalidateCache()
         res.json({ success: true })
     } catch (err) {
         next(err)

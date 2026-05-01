@@ -6,6 +6,7 @@ const crypto = require("crypto")
 const pool = require("../../config/db")
 const { jwt: jwtConfig } = require("../../config")
 const { validate, schemas } = require("../utils/validate")
+const { sendVerifyEmailOtp } = require("../utils/email")
 const auth = require("../middleware/auth")
 
 const router = express.Router()
@@ -39,6 +40,18 @@ function signPendingToken(payload) {
     )
 }
 
+function emailErrorResponse(res, err, label, target) {
+    console.error(`[${label}] Gửi OTP thất bại tới ${target}:`, err.message)
+    if (err.code === "SMTP_NOT_CONFIGURED") {
+        return res.status(503).json({
+            message: "Hệ thống email chưa được cấu hình. Vui lòng liên hệ quản trị viên",
+        })
+    }
+    return res.status(502).json({
+        message: "Không gửi được email xác thực, vui lòng thử lại sau",
+    })
+}
+
 router.post("/register", validate(schemas.register), async (req, res, next) => {
     const { email, password, role } = req.body
     try {
@@ -51,14 +64,18 @@ router.post("/register", validate(schemas.register), async (req, res, next) => {
         const otp = generateOtp()
         const otpHash = await bcrypt.hash(otp, 8)
 
+        try {
+            await sendVerifyEmailOtp(email, otp)
+        } catch (err) {
+            return emailErrorResponse(res, err, "REGISTER", email)
+        }
+
         const pendingToken = signPendingToken({
             email,
             password_hash: passwordHash,
             role: role || "job_seeker",
             otp_hash: otpHash,
         })
-
-        console.log(`[REGISTER OTP] ${email}: ${otp}`)
 
         res.json({ pending_token: pendingToken, email, expires_in: OTP_TTL_SEC })
     } catch (err) {
@@ -143,14 +160,18 @@ router.post("/resend-otp", async (req, res, next) => {
         const otp = generateOtp()
         const otpHash = await bcrypt.hash(otp, 8)
 
+        try {
+            await sendVerifyEmailOtp(payload.email, otp)
+        } catch (err) {
+            return emailErrorResponse(res, err, "REGISTER RESEND", payload.email)
+        }
+
         const newPendingToken = signPendingToken({
             email: payload.email,
             password_hash: payload.password_hash,
             role: payload.role,
             otp_hash: otpHash,
         })
-
-        console.log(`[REGISTER OTP RESEND] ${payload.email}: ${otp}`)
 
         res.json({ pending_token: newPendingToken, email: payload.email, expires_in: OTP_TTL_SEC })
     } catch (err) {
