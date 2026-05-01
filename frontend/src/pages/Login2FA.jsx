@@ -55,7 +55,7 @@ export default function Login2FA() {
         <div className="auth-page">
             <div className="auth-card">
                 <div className="auth-header">
-                    <h1 className="auth-title">Xác thực 2 bước</h1>
+                    <h1 className="auth-title">Xác thực 2 yếu tố</h1>
                     <p className="auth-subtitle">
                         {useBackup
                             ? 'Nhập một trong các mã khôi phục bạn đã lưu khi kích hoạt 2FA.'

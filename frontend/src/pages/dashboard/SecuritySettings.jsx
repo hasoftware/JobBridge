@@ -74,7 +74,7 @@ export default function SecuritySettings() {
         setDisableErr('')
         try {
             await authApi.twoFA.disable(disablePassword, disableCode)
-            addToast('Đã tắt xác thực 2 bước', 'info')
+            addToast('Đã tắt xác thực 2 yếu tố', 'info')
             setDisableOpen(false)
             setDisablePassword('')
             setDisableCode('')
@@ -186,7 +186,7 @@ export default function SecuritySettings() {
         <div className="security-page">
             <header className="security-header">
                 <h1>Cài đặt bảo mật</h1>
-                <p>Quản lý mật khẩu, xác minh 2 bước và các phiên đăng nhập của bạn.</p>
+                <p>Quản lý mật khẩu, xác thực 2 yếu tố và các phiên đăng nhập của bạn.</p>
             </header>
 
             <section id="section-password" className="security-card">
@@ -267,7 +267,7 @@ export default function SecuritySettings() {
             <section id="section-2fa" className="security-card">
                 <div className="security-card-head">
                     <div>
-                        <h2>Xác minh 2 bước (2FA)</h2>
+                        <h2>Xác thực 2 yếu tố (2FA)</h2>
                         <p>Bảo vệ tài khoản bằng mã xác thực một lần từ app như Google Authenticator, Authy.</p>
                     </div>
                     {twoFALoading ? (

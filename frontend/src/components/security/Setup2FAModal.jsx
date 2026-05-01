@@ -53,7 +53,7 @@ export default function Setup2FAModal({ open, onClose, onSuccess }) {
             const data = await authApi.twoFA.enable(secret, code)
             setBackupCodes(data.backup_codes)
             setStep('codes')
-            addToast('Đã kích hoạt xác thực 2 bước', 'success')
+            addToast('Đã kích hoạt xác thực 2 yếu tố', 'success')
         } catch (err) {
             setError(err.message || 'Mã không đúng')
         } finally {
@@ -70,7 +70,7 @@ export default function Setup2FAModal({ open, onClose, onSuccess }) {
         <div className="modal-backdrop" onClick={() => step !== 'codes' && onClose()}>
             <div className="modal-card" onClick={(e) => e.stopPropagation()}>
                 <header className="modal-head">
-                    <h2>Kích hoạt xác thực 2 bước</h2>
+                    <h2>Kích hoạt xác thực 2 yếu tố</h2>
                     {step !== 'codes' && (
                         <button type="button" className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
                     )}
