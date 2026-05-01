@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
 import './Dashboard.css'
 
 const CANDIDATE_NAV = [
-  { path: 'cv', label: 'CV của tôi' },
-  { path: 'applications', label: 'Đơn ứng tuyển' },
-  { path: 'saved-jobs', label: 'Việc đã lưu' },
   { path: 'profile', label: 'Hồ sơ' },
+  { path: 'cvs', label: 'CV của tôi' },
+  { path: 'applied-jobs', label: 'Đã ứng tuyển' },
+  { path: 'saved-jobs', label: 'Đã lưu' },
+  { path: 'job-suggestions', label: 'Việc phù hợp' },
 ]
 
 const RECRUITER_NAV = [
@@ -20,12 +22,15 @@ const RECRUITER_NAV = [
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user, isRecruiter, logout } = useAuth()
+  const toast = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const navItems = isRecruiter ? RECRUITER_NAV : CANDIDATE_NAV
+  const displayName = user?.full_name?.trim() || user?.email || ''
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
+    toast?.addToast('Đã đăng xuất', 'info')
     navigate('/')
   }
 
@@ -50,7 +55,10 @@ export default function Dashboard() {
 
         <div className="dashboard-sidebar-footer">
           <div className="dashboard-user">
-            <div className="dashboard-user-name">{user?.email}</div>
+            <div className="dashboard-user-name">{displayName}</div>
+            {user?.email && user?.full_name && (
+              <div className="dashboard-user-email">{user.email}</div>
+            )}
             <button className="dashboard-logout" onClick={handleLogout}>
               Đăng xuất
             </button>

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react"
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom"
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom"
 import { ToastProvider } from "./hooks/useToast"
 import { useAuth } from "./hooks/useAuth"
 import Layout from "./components/layout/Layout"
@@ -21,6 +21,7 @@ const CVBuilder = lazy(() => import("./pages/CVBuilder"))
 import Dashboard from "./pages/Dashboard"
 // const Dashboard = lazy(() => import('./pages/Dashboard'))
 const NotFound = lazy(() => import("./pages/NotFound"))
+const ProfileSettings = lazy(() => import("./pages/dashboard/ProfileSettings"))
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"))
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
@@ -74,7 +75,10 @@ export default function App() {
                         <Route path="*" element={<NotFound />} />
                     </Route>
                     {/* Dashboard has its own layout (no navbar/footer) */}
-                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="dashboard" element={<Dashboard />}>
+                        <Route index element={<Navigate to="profile" replace />} />
+                        <Route path="profile" element={<ProfileSettings />} />
+                    </Route>
                     <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
                         <Route path="settings/email" element={<EmailSettings />} />

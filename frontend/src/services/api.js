@@ -102,6 +102,11 @@ export const auth = {
     method: "POST",
     body: JSON.stringify({ pending_token }),
   }),
+  me: () => apiFetch("/auth/me"),
+  updateProfile: (payload) => apiFetch("/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  }),
 }
 
 export const admin = {

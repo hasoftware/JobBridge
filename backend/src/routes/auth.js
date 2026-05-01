@@ -263,10 +263,47 @@ router.post("/logout", auth, async (req, res, next) => {
 router.get("/me", auth, async (req, res, next) => {
     try {
         const result = await pool.query(
-            "SELECT id, public_id, email, full_name, role, is_verified, created_at FROM users WHERE id=$1",
+            "SELECT id, public_id, email, full_name, phone, date_of_birth, gender, address, bio, role, is_verified, created_at FROM users WHERE id=$1",
             [req.user.id],
         )
         if (result.rows.length === 0) return res.status(404).json({ message: "Not found" })
+        res.json(result.rows[0])
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.patch("/me", auth, validate(schemas.profile), async (req, res, next) => {
+    try {
+        const allowed = ["full_name", "phone", "date_of_birth", "gender", "address", "bio"]
+        const sets = []
+        const params = []
+        let idx = 1
+
+        for (const field of allowed) {
+            if (req.body[field] === undefined) continue
+            let value = req.body[field]
+            if (field === "address") {
+                value = value && typeof value === "object" ? JSON.stringify(value) : null
+                sets.push(`${field}=$${idx++}::jsonb`)
+            } else {
+                sets.push(`${field}=$${idx++}`)
+                value = value === "" ? null : value
+            }
+            params.push(value)
+        }
+
+        if (sets.length === 0) {
+            return res.status(400).json({ message: "Không có dữ liệu cần cập nhật" })
+        }
+
+        params.push(req.user.id)
+        const result = await pool.query(
+            `UPDATE users SET ${sets.join(", ")} WHERE id=$${idx}
+             RETURNING id, public_id, email, full_name, phone, date_of_birth, gender, address, bio, role, is_verified, created_at`,
+            params,
+        )
+
         res.json(result.rows[0])
     } catch (err) {
         next(err)

@@ -101,6 +101,38 @@ const schemas = {
         code: Joi.string().required(),
         redirect_uri: Joi.string().required(),
     }),
+
+    profile: Joi.object({
+        full_name: Joi.string().trim().min(2).max(100).messages({
+            "string.min": "Họ và tên phải có ít nhất 2 ký tự",
+            "string.max": "Họ và tên không vượt quá 100 ký tự",
+        }),
+        phone: Joi.string().trim().max(20).pattern(/^[+\d\s\-()]+$/).allow("", null).messages({
+            "string.pattern.base": "Số điện thoại không hợp lệ",
+            "string.max": "Số điện thoại không vượt quá 20 ký tự",
+        }),
+        date_of_birth: Joi.alternatives().try(
+            Joi.date().less("now").iso(),
+            Joi.string().valid("", null),
+            Joi.valid(null),
+        ).messages({
+            "date.less": "Ngày sinh phải nhỏ hơn ngày hiện tại",
+        }),
+        gender: Joi.string().valid("male", "female", "other", "").allow(null),
+        address: Joi.alternatives().try(
+            Joi.object({
+                street: Joi.string().trim().max(200).allow("", null),
+                ward_code: Joi.alternatives().try(Joi.number().integer(), Joi.string().allow("")).allow(null),
+                ward_name: Joi.string().allow("", null),
+                district_code: Joi.alternatives().try(Joi.number().integer(), Joi.string().allow("")).allow(null),
+                district_name: Joi.string().allow("", null),
+                province_code: Joi.alternatives().try(Joi.number().integer(), Joi.string().allow("")).allow(null),
+                province_name: Joi.string().allow("", null),
+            }),
+            Joi.valid(null),
+        ),
+        bio: Joi.string().trim().max(500).allow("", null),
+    }).min(1),
 }
 
 module.exports = { validate, schemas }

@@ -6,6 +6,11 @@ CREATE TABLE users (
     email text NOT NULL UNIQUE,
     password_hash text NOT NULL,
     full_name text,
+    phone text,
+    date_of_birth date,
+    gender text CHECK (gender IN ('male', 'female', 'other')),
+    address jsonb,
+    bio text,
     role text DEFAULT 'job_seeker' NOT NULL CHECK (role IN ('job_seeker', 'recruiter', 'admin')),
     is_verified boolean DEFAULT false,
     created_at timestamp DEFAULT CURRENT_TIMESTAMP

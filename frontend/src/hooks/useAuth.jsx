@@ -96,6 +96,28 @@ export function AuthProvider({ children }) {
     clearPending()
   }, [])
 
+  const syncUserFields = useCallback((data) => {
+    return persist({
+      public_id: data.public_id ?? null,
+      email: data.email,
+      full_name: data.full_name || '',
+      role: data.role,
+      is_verified: !!data.is_verified,
+    })
+  }, [persist])
+
+  const refreshUser = useCallback(async () => {
+    const data = await auth.me()
+    syncUserFields(data)
+    return data
+  }, [syncUserFields])
+
+  const updateProfile = useCallback(async (payload) => {
+    const data = await auth.updateProfile(payload)
+    syncUserFields(data)
+    return data
+  }, [syncUserFields])
+
   const getPendingEmail = useCallback(() => getPending()?.email || null, [])
 
   const logout = useCallback(async () => {
@@ -124,6 +146,8 @@ export function AuthProvider({ children }) {
       getPendingEmail,
       logout,
       getUser,
+      refreshUser,
+      updateProfile,
     }}>
       {children}
     </AuthContext.Provider>

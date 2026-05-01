@@ -1,0 +1,170 @@
+.profile-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profile-loading {
+    padding: 60px 24px;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.profile-header h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.profile-header p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.profile-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px 22px;
+}
+
+.profile-readonly {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-readonly-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.profile-readonly-label {
+    color: #64748b;
+}
+
+.profile-readonly-value {
+    color: #0f172a;
+    font-weight: 500;
+    word-break: break-all;
+    text-align: right;
+}
+
+.profile-status {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.profile-status.verified {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.profile-status.unverified {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.profile-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+}
+
+.profile-field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.profile-field input,
+.profile-field select,
+.profile-field textarea {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.profile-field input:focus,
+.profile-field select:focus,
+.profile-field textarea:focus {
+    border-color: #2563eb;
+}
+
+.profile-field textarea {
+    resize: vertical;
+    min-height: 96px;
+}
+
+.profile-field.has-error input,
+.profile-field.has-error select,
+.profile-field.has-error textarea {
+    border-color: #dc2626;
+}
+
+.profile-error {
+    color: #dc2626;
+    font-size: 12px;
+}
+
+.profile-counter {
+    align-self: flex-end;
+    font-size: 11.5px;
+    color: #94a3b8;
+}
+
+.profile-api-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.profile-actions .btn-primary {
+    padding: 10px 24px;
+    font-size: 14px;
+}
+
+@media (max-width: 640px) {
+    .profile-row {
+        grid-template-columns: 1fr;
+    }
+}

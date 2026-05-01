@@ -1,0 +1,42 @@
+.address-select {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.address-select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+.address-select select,
+.address-select-street {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    width: 100%;
+}
+
+.address-select select:focus,
+.address-select-street:focus {
+    border-color: #2563eb;
+}
+
+.address-select select:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .address-select-row {
+        grid-template-columns: 1fr;
+    }
+}
