@@ -55,6 +55,71 @@ router.get("/", async (req, res, next) => {
     }
 })
 
+router.get("/saved", auth, async (req, res, next) => {
+    const page = Math.max(1, Number(req.query.page) || 1)
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20))
+    const offset = (page - 1) * limit
+
+    try {
+        const { rows } = await pool.query(
+            `SELECT j.id, j.title, j.location, j.salary_min, j.salary_max, j.currency,
+                    j.job_type, j.publishing_date, j.application_deadline,
+                    c.name AS company_name, c.logo_url AS company_logo,
+                    s.created_at AS saved_at
+             FROM saved_jobs s
+             INNER JOIN jobs j ON j.id = s.job_id
+             LEFT JOIN companies c ON c.id = j.company_id
+             WHERE s.user_id = $1
+             ORDER BY s.created_at DESC
+             LIMIT $2 OFFSET $3`,
+            [req.user.id, limit, offset],
+        )
+
+        const countResult = await pool.query(
+            "SELECT COUNT(*) FROM saved_jobs WHERE user_id = $1",
+            [req.user.id],
+        )
+
+        res.json({
+            jobs: rows,
+            total: Number(countResult.rows[0].count),
+            page,
+            limit,
+        })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.post("/:id/save", auth, async (req, res, next) => {
+    try {
+        const exists = await pool.query("SELECT 1 FROM jobs WHERE id=$1", [req.params.id])
+        if (exists.rows.length === 0) return res.status(404).json({ message: "Job not found" })
+
+        const { rows } = await pool.query(
+            `INSERT INTO saved_jobs(user_id, job_id) VALUES($1, $2)
+             ON CONFLICT (user_id, job_id) DO UPDATE SET user_id = EXCLUDED.user_id
+             RETURNING created_at`,
+            [req.user.id, req.params.id],
+        )
+        res.json({ success: true, saved_at: rows[0].created_at })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.delete("/:id/save", auth, async (req, res, next) => {
+    try {
+        const result = await pool.query(
+            "DELETE FROM saved_jobs WHERE user_id=$1 AND job_id=$2",
+            [req.user.id, req.params.id],
+        )
+        res.json({ success: true, removed: result.rowCount > 0 })
+    } catch (err) {
+        next(err)
+    }
+})
+
 router.get("/:id", async (req, res, next) => {
     try {
         const { rows } = await pool.query(

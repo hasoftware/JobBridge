@@ -24,6 +24,7 @@ const NotFound = lazy(() => import("./pages/NotFound"))
 const ProfileSettings = lazy(() => import("./pages/dashboard/ProfileSettings"))
 const SecuritySettings = lazy(() => import("./pages/dashboard/SecuritySettings"))
 const NotificationSettings = lazy(() => import("./pages/dashboard/NotificationSettings"))
+const SavedJobs = lazy(() => import("./pages/dashboard/SavedJobs"))
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"))
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
@@ -82,6 +83,7 @@ export default function App() {
                         <Route path="profile" element={<ProfileSettings />} />
                         <Route path="security" element={<SecuritySettings />} />
                         <Route path="notifications" element={<NotificationSettings />} />
+                        <Route path="saved-jobs" element={<SavedJobs />} />
                     </Route>
                     <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />

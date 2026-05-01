@@ -123,6 +123,20 @@ export const auth = {
   }),
 }
 
+export const jobs = {
+  list: (params = {}) => {
+    const search = new URLSearchParams(params).toString()
+    return apiFetch(`/jobs${search ? `?${search}` : ''}`)
+  },
+  get: (id) => apiFetch(`/jobs/${id}`),
+  getSaved: (params = {}) => {
+    const search = new URLSearchParams(params).toString()
+    return apiFetch(`/jobs/saved${search ? `?${search}` : ''}`)
+  },
+  save: (id) => apiFetch(`/jobs/${id}/save`, { method: "POST" }),
+  unsave: (id) => apiFetch(`/jobs/${id}/save`, { method: "DELETE" }),
+}
+
 export const admin = {
   getEmailSettings: () => apiFetch("/admin/settings/email"),
   saveEmailSettings: (config) => apiFetch("/admin/settings/email", {
