@@ -1,123 +1,114 @@
-import { useRef } from 'react'
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas-pro'
+import { forwardRef } from 'react'
 import './CVPreview.css'
 
-export default function CVPreview({ data }) {
-  const previewRef = useRef(null)
-
-  const handleExport = async () => {
-    if (!previewRef.current) return
-    const canvas = await html2canvas(previewRef.current, { scale: 2 })
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-    pdf.save(`cv-${data.personal?.name || 'profile'}.pdf`)
-  }
-
-  const { personal = {}, education = [], experience = [], skills = [], projects = [], languages = [], certificates = [] } = data || {}
-
-  return (
-    <div className="cv-preview">
-      <div className="cv-preview-actions">
-        <button type="button" className="btn btn-primary" onClick={handleExport}>
-          Xuất PDF
-        </button>
-      </div>
-
-      <div className="cv-preview-paper" ref={previewRef}>
-        <header className="cv-preview-header">
-          {personal.avatar && (
-            <img src={personal.avatar} alt="" className="cv-preview-avatar" />
-          )}
-          <div>
-            <h1 className="cv-preview-name">{personal.name || 'Họ và tên'}</h1>
-            <div className="cv-preview-contact">
-              {personal.email && <span>{personal.email}</span>}
-              {personal.phone && <span>{personal.phone}</span>}
-              {personal.address && <span>{personal.address}</span>}
-            </div>
-          </div>
-        </header>
-
-        {experience.length > 0 && (
-          <section>
-            <h2>Kinh nghiệm</h2>
-            {experience.map((exp, i) => (
-              <div key={i} className="cv-preview-item">
-                <strong>{exp.position}</strong> — {exp.company}
-                <div className="cv-preview-date">
-                  {exp.startDate} - {exp.current ? 'Hiện tại' : exp.endDate}
-                </div>
-                {exp.description && <p>{exp.description}</p>}
-              </div>
-            ))}
-          </section>
-        )}
-
-        {education.length > 0 && (
-          <section>
-            <h2>Học vấn</h2>
-            {education.map((edu, i) => (
-              <div key={i} className="cv-preview-item">
-                <strong>{edu.school}</strong>
-                {edu.major && <> — {edu.major}</>}
-                <div className="cv-preview-date">{edu.startDate} - {edu.endDate}</div>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {skills.length > 0 && (
-          <section>
-            <h2>Kỹ năng</h2>
-            <div className="cv-preview-skills">
-              {skills.filter((s) => s.name).map((s, i) => (
-                <span key={i} className="cv-preview-skill">{s.name}</span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {projects.length > 0 && projects.some((p) => p.name) && (
-          <section>
-            <h2>Dự án</h2>
-            {projects.filter((p) => p.name).map((p, i) => (
-              <div key={i} className="cv-preview-item">
-                <strong>{p.name}</strong>
-                {p.techStack && <div className="cv-preview-date">{p.techStack}</div>}
-                {p.description && <p>{p.description}</p>}
-              </div>
-            ))}
-          </section>
-        )}
-
-        {languages.length > 0 && languages.some((l) => l.language) && (
-          <section>
-            <h2>Ngoại ngữ</h2>
-            {languages.filter((l) => l.language).map((l, i) => (
-              <div key={i} className="cv-preview-item">
-                <strong>{l.language}</strong> — {l.level}
-              </div>
-            ))}
-          </section>
-        )}
-
-        {certificates.length > 0 && certificates.some((c) => c.name) && (
-          <section>
-            <h2>Chứng chỉ</h2>
-            {certificates.filter((c) => c.name).map((c, i) => (
-              <div key={i} className="cv-preview-item">
-                <strong>{c.name}</strong>
-                {c.issuer && <> — {c.issuer}</>}
-                {c.issueDate && <div className="cv-preview-date">{c.issueDate}</div>}
-              </div>
-            ))}
-          </section>
-        )}
-      </div>
-    </div>
-  )
+function formatDate(value) {
+    if (!value) return ''
+    if (/^\d{4}-\d{2}$/.test(value)) {
+        const [y, m] = value.split('-')
+        return `${m}/${y}`
+    }
+    if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+        const [y, m, d] = value.slice(0, 10).split('-')
+        return `${d}/${m}/${y}`
+    }
+    return value
 }
+
+function periodText(from, to) {
+    const f = formatDate(from)
+    const t = to ? formatDate(to) : 'Hiện tại'
+    if (!f) return t
+    return `${f} → ${t}`
+}
+
+const CVPreview = forwardRef(function CVPreview({ data }, ref) {
+    const personal = data?.personal || {}
+    const summary = data?.summary || ''
+    const experience = Array.isArray(data?.experience) ? data.experience : []
+    const education = Array.isArray(data?.education) ? data.education : []
+    const skills = Array.isArray(data?.skills) ? data.skills : []
+    const links = Array.isArray(personal.links) ? personal.links.filter((l) => l.url) : []
+
+    return (
+        <div className="cv-preview" ref={ref}>
+            <header className="cv-header">
+                <h1 className="cv-name">{personal.full_name || 'Họ và tên của bạn'}</h1>
+                {personal.headline && <div className="cv-headline">{personal.headline}</div>}
+                <div className="cv-contact">
+                    {personal.email && <span>{personal.email}</span>}
+                    {personal.phone && <span>{personal.phone}</span>}
+                    {personal.address && <span>{personal.address}</span>}
+                    {personal.date_of_birth && <span>Ngày sinh: {formatDate(personal.date_of_birth)}</span>}
+                </div>
+                {links.length > 0 && (
+                    <div className="cv-links">
+                        {links.map((l, i) => (
+                            <span key={i} className="cv-link">
+                                {l.label || l.url}: <span>{l.url}</span>
+                            </span>
+                        ))}
+                    </div>
+                )}
+            </header>
+
+            {summary && (
+                <section className="cv-section">
+                    <h2 className="cv-section-title">Giới thiệu</h2>
+                    <p className="cv-summary">{summary}</p>
+                </section>
+            )}
+
+            {experience.length > 0 && (
+                <section className="cv-section">
+                    <h2 className="cv-section-title">Kinh nghiệm làm việc</h2>
+                    {experience.map((it, i) => (
+                        <div key={i} className="cv-item">
+                            <div className="cv-item-head">
+                                <div>
+                                    <div className="cv-item-title">{it.position || 'Vị trí'}</div>
+                                    <div className="cv-item-sub">{it.company || ''}</div>
+                                </div>
+                                <div className="cv-item-period">{periodText(it.from, it.to)}</div>
+                            </div>
+                            {it.description && <div className="cv-item-desc">{it.description}</div>}
+                        </div>
+                    ))}
+                </section>
+            )}
+
+            {education.length > 0 && (
+                <section className="cv-section">
+                    <h2 className="cv-section-title">Học vấn</h2>
+                    {education.map((it, i) => (
+                        <div key={i} className="cv-item">
+                            <div className="cv-item-head">
+                                <div>
+                                    <div className="cv-item-title">{it.degree || 'Bằng cấp / Ngành'}</div>
+                                    <div className="cv-item-sub">{it.school || ''}</div>
+                                </div>
+                                <div className="cv-item-period">{periodText(it.from, it.to)}</div>
+                            </div>
+                            {it.description && <div className="cv-item-desc">{it.description}</div>}
+                        </div>
+                    ))}
+                </section>
+            )}
+
+            {skills.length > 0 && (
+                <section className="cv-section">
+                    <h2 className="cv-section-title">Kỹ năng</h2>
+                    <ul className="cv-skill-list">
+                        {skills.filter((s) => s.name).map((s, i) => (
+                            <li key={i} className="cv-skill">
+                                <span className="cv-skill-name">{s.name}</span>
+                                {s.level && <span className="cv-skill-level">{s.level}</span>}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+        </div>
+    )
+})
+
+export default CVPreview

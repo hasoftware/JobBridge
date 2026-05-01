@@ -1,98 +1,151 @@
 .cv-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+    background: #fff;
+    color: #0f172a;
+    padding: 36px 40px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+    width: 210mm;
+    min-height: 297mm;
+    box-sizing: border-box;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
 }
 
-.cv-preview-actions {
-  display: flex;
-  justify-content: flex-end;
+.cv-header {
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
 }
 
-.cv-preview-paper {
-  background: #fff;
-  color: #1f2937;
-  padding: 32px;
-  border-radius: var(--jb-radius-md);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 13px;
-  line-height: 1.6;
-  min-height: 800px;
-  box-shadow: var(--jb-shadow-md);
+.cv-name {
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.3px;
 }
 
-.cv-preview-header {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  border-bottom: 2px solid #2563eb;
-  padding-bottom: 16px;
-  margin-bottom: 20px;
+.cv-headline {
+    font-size: 14px;
+    color: #2563eb;
+    font-weight: 500;
+    margin-bottom: 8px;
 }
 
-.cv-preview-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
+.cv-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 12px;
+    color: #475569;
 }
 
-.cv-preview-name {
-  margin: 0 0 6px;
-  font-size: 22px;
-  color: #0f172a;
+.cv-contact span:not(:last-child)::after {
+    content: '·';
+    margin-left: 16px;
+    color: #cbd5e1;
 }
 
-.cv-preview-contact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-size: 12px;
-  color: #475569;
+.cv-links {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-size: 12px;
+    color: #475569;
 }
 
-.cv-preview-paper section {
-  margin-bottom: 18px;
+.cv-link span {
+    color: #2563eb;
 }
 
-.cv-preview-paper h2 {
-  font-size: 14px;
-  text-transform: uppercase;
-  color: #2563eb;
-  margin: 0 0 8px;
-  letter-spacing: 0.5px;
+.cv-section {
+    margin-bottom: 18px;
 }
 
-.cv-preview-item {
-  margin-bottom: 10px;
+.cv-section-title {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
 }
 
-.cv-preview-item strong {
-  font-weight: 600;
+.cv-summary {
+    margin: 0;
+    color: #334155;
+    white-space: pre-wrap;
 }
 
-.cv-preview-date {
-  font-size: 11px;
-  color: #94a3b8;
-  margin-top: 2px;
+.cv-item {
+    margin-bottom: 14px;
 }
 
-.cv-preview-item p {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: #475569;
+.cv-item:last-child {
+    margin-bottom: 0;
 }
 
-.cv-preview-skills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.cv-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 4px;
 }
 
-.cv-preview-skill {
-  background: #eff6ff;
-  color: #2563eb;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 12px;
+.cv-item-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.cv-item-sub {
+    font-size: 12.5px;
+    color: #475569;
+}
+
+.cv-item-period {
+    font-size: 11.5px;
+    color: #64748b;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.cv-item-desc {
+    font-size: 12.5px;
+    color: #334155;
+    white-space: pre-wrap;
+}
+
+.cv-skill-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.cv-skill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.cv-skill-name {
+    font-weight: 500;
+    color: #0f172a;
+}
+
+.cv-skill-level {
+    color: #64748b;
+    font-size: 11px;
 }

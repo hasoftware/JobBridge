@@ -123,6 +123,15 @@ export const auth = {
   }),
 }
 
+export const cvs = {
+  list: () => apiFetch("/cvs"),
+  get: (id) => apiFetch(`/cvs/${id}`),
+  create: (payload) => apiFetch("/cvs", { method: "POST", body: JSON.stringify(payload) }),
+  update: (id, payload) => apiFetch(`/cvs/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
+  remove: (id) => apiFetch(`/cvs/${id}`, { method: "DELETE" }),
+  setDefault: (id) => apiFetch(`/cvs/${id}/set-default`, { method: "POST" }),
+}
+
 export const jobs = {
   list: (params = {}) => {
     const search = new URLSearchParams(params).toString()

@@ -1,56 +1,138 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useToast } from '../../hooks/useToast'
+import { cvs as cvsApi } from '../../services/api'
+import './MyCVs.css'
 
-const MOCK_CVS = [
-  { id: 1, name: 'CV Frontend Developer', updated_at: '2026-04-10', file_url: '/cv/cv-1.pdf' },
-  { id: 2, name: 'CV Backend Engineer', updated_at: '2026-04-08', file_url: '/cv/cv-2.pdf' },
-]
+function formatDate(value) {
+    if (!value) return '—'
+    try {
+        const d = new Date(value)
+        const dd = String(d.getDate()).padStart(2, '0')
+        const mm = String(d.getMonth() + 1).padStart(2, '0')
+        const yyyy = d.getFullYear()
+        return `${dd}/${mm}/${yyyy}`
+    } catch {
+        return '—'
+    }
+}
 
 export default function MyCVs() {
-  const [cvs, setCvs] = useState([])
-  const [loading, setLoading] = useState(true)
+    const navigate = useNavigate()
+    const { addToast } = useToast()
+    const [items, setItems] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [busyId, setBusyId] = useState(null)
+    const [error, setError] = useState('')
 
-  useEffect(() => {
-    setCvs(MOCK_CVS)
-    setLoading(false)
-  }, [])
+    const load = async () => {
+        try {
+            const list = await cvsApi.list()
+            setItems(list)
+        } catch (err) {
+            setError(err.message || 'Không tải được danh sách CV')
+        } finally {
+            setLoading(false)
+        }
+    }
 
-  const handleDelete = (id) => {
-    if (!confirm('Xoá CV này?')) return
-    setCvs((prev) => prev.filter((cv) => cv.id !== id))
-  }
+    useEffect(() => {
+        load()
+    }, [])
 
-  return (
-    <div className="dashboard-page">
-      <div className="dashboard-page-header">
-        <h1>CV của tôi</h1>
-        <Link to="/cv-builder" className="btn btn-primary">+ Tạo CV mới</Link>
-      </div>
+    const handleDelete = async (cv) => {
+        const ok = window.confirm(`Xóa CV "${cv.title}"?`)
+        if (!ok) return
+        setBusyId(cv.id)
+        try {
+            await cvsApi.remove(cv.id)
+            setItems((prev) => prev.filter((it) => it.id !== cv.id))
+            addToast('Đã xóa CV', 'info')
+        } catch (err) {
+            addToast(err.message || 'Xóa thất bại', 'error')
+        } finally {
+            setBusyId(null)
+        }
+    }
 
-      {loading ? (
-        <div>Đang tải...</div>
-      ) : cvs.length === 0 ? (
-        <div className="dashboard-empty">
-          <p>Bạn chưa có CV nào</p>
-          <Link to="/cv-builder" className="btn btn-primary">Tạo CV đầu tiên</Link>
+    const handleSetDefault = async (cv) => {
+        if (cv.is_default) return
+        setBusyId(cv.id)
+        try {
+            await cvsApi.setDefault(cv.id)
+            setItems((prev) => prev.map((it) => ({ ...it, is_default: it.id === cv.id })))
+            addToast(`Đã đặt "${cv.title}" làm CV mặc định`, 'success')
+        } catch (err) {
+            addToast(err.message || 'Cập nhật thất bại', 'error')
+        } finally {
+            setBusyId(null)
+        }
+    }
+
+    if (loading) return <div className="cvs-loading">Đang tải...</div>
+
+    return (
+        <div className="cvs-page">
+            <header className="cvs-header">
+                <div>
+                    <h1>CV của tôi</h1>
+                    <p>{items.length} CV</p>
+                </div>
+                <Link to="/cv-builder" className="btn btn-primary">+ Tạo CV mới</Link>
+            </header>
+
+            {error && <div className="cvs-error">{error}</div>}
+
+            {items.length === 0 ? (
+                <div className="cvs-empty">
+                    <h2>Bạn chưa có CV nào</h2>
+                    <p>Tạo CV đầu tiên để ứng tuyển nhanh hơn vào các tin tuyển dụng.</p>
+                    <Link to="/cv-builder" className="btn btn-primary">Tạo CV mới</Link>
+                </div>
+            ) : (
+                <ul className="cvs-list">
+                    {items.map((cv) => (
+                        <li key={cv.id} className="cv-row">
+                            <div className="cv-row-main">
+                                <div className="cv-row-title">
+                                    <span>{cv.title}</span>
+                                    {cv.is_default && <span className="cv-badge">Mặc định</span>}
+                                </div>
+                                <div className="cv-row-meta">
+                                    Cập nhật: {formatDate(cv.updated_at)}
+                                </div>
+                            </div>
+                            <div className="cv-row-actions">
+                                {!cv.is_default && (
+                                    <button
+                                        type="button"
+                                        className="cv-action"
+                                        onClick={() => handleSetDefault(cv)}
+                                        disabled={busyId === cv.id}
+                                    >
+                                        Đặt mặc định
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    className="cv-action"
+                                    onClick={() => navigate(`/cv-builder?id=${cv.id}`)}
+                                >
+                                    Sửa
+                                </button>
+                                <button
+                                    type="button"
+                                    className="cv-action cv-action-danger"
+                                    onClick={() => handleDelete(cv)}
+                                    disabled={busyId === cv.id}
+                                >
+                                    Xóa
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
-      ) : (
-        <div className="cv-list">
-          {cvs.map((cv) => (
-            <div key={cv.id} className="cv-list-item">
-              <div className="cv-list-info">
-                <div className="cv-list-name">{cv.name}</div>
-                <div className="cv-list-date">Cập nhật {cv.updated_at}</div>
-              </div>
-              <div className="cv-list-actions">
-                <a href={cv.file_url} target="_blank" rel="noreferrer">Xem</a>
-                <Link to={`/cv-builder?id=${cv.id}`}>Sửa</Link>
-                <button onClick={() => handleDelete(cv.id)}>Xoá</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+    )
 }

@@ -80,6 +80,16 @@ CREATE TABLE saved_jobs (
     UNIQUE (user_id, job_id)
 );
 
+CREATE TABLE cvs (
+    id serial PRIMARY KEY,
+    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title text NOT NULL,
+    data jsonb NOT NULL DEFAULT '{}'::jsonb,
+    is_default boolean DEFAULT false,
+    created_at timestamp DEFAULT now(),
+    updated_at timestamp DEFAULT now()
+);
+
 CREATE INDEX idx_jobs_company_id ON jobs (company_id);
 CREATE INDEX idx_jobs_created_by ON jobs (created_by);
 CREATE INDEX idx_jobs_dates ON jobs (publishing_date, application_deadline);
@@ -87,3 +97,4 @@ CREATE INDEX idx_applications_user_id ON applications (user_id);
 CREATE INDEX idx_applications_job_id ON applications (job_id);
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens (user_id);
 CREATE INDEX idx_saved_jobs_user_created ON saved_jobs (user_id, created_at DESC);
+CREATE INDEX idx_cvs_user_updated ON cvs (user_id, updated_at DESC);
