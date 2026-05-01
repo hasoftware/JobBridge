@@ -89,9 +89,9 @@ export const auth = {
     method: "POST",
     body: JSON.stringify({ email, password }),
   }),
-  register: (email, password, role) => apiFetch("/auth/register", {
+  register: (payload) => apiFetch("/auth/register", {
     method: "POST",
-    body: JSON.stringify({ email, password, role }),
+    body: JSON.stringify(payload),
   }),
   logout: () => apiFetch("/auth/logout", { method: "POST" }),
   verifyEmail: (pending_token, code) => apiFetch("/auth/verify-email", {

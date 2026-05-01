@@ -4,6 +4,7 @@ CREATE TABLE users (
     id serial PRIMARY KEY,
     email text NOT NULL UNIQUE,
     password_hash text NOT NULL,
+    full_name text,
     role text DEFAULT 'job_seeker' NOT NULL CHECK (role IN ('job_seeker', 'recruiter', 'admin')),
     is_verified boolean DEFAULT false,
     created_at timestamp DEFAULT CURRENT_TIMESTAMP

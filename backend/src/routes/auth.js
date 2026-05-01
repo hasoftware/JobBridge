@@ -53,7 +53,7 @@ function emailErrorResponse(res, err, label, target) {
 }
 
 router.post("/register", validate(schemas.register), async (req, res, next) => {
-    const { email, password, role } = req.body
+    const { email, password, role, full_name } = req.body
     try {
         const existing = await pool.query("SELECT id FROM users WHERE email=$1", [email])
         if (existing.rows.length > 0) {
@@ -74,6 +74,7 @@ router.post("/register", validate(schemas.register), async (req, res, next) => {
             email,
             password_hash: passwordHash,
             role: role || "job_seeker",
+            full_name: full_name.trim(),
             otp_hash: otpHash,
         })
 
@@ -112,8 +113,8 @@ router.post("/verify-email", async (req, res, next) => {
         }
 
         const result = await pool.query(
-            "INSERT INTO users(email, password_hash, role, is_verified) VALUES($1, $2, $3, true) RETURNING id, email, role",
-            [payload.email, payload.password_hash, payload.role],
+            "INSERT INTO users(email, password_hash, full_name, role, is_verified) VALUES($1, $2, $3, $4, true) RETURNING id, email, full_name, role",
+            [payload.email, payload.password_hash, payload.full_name || null, payload.role],
         )
         const user = result.rows[0]
 
@@ -124,6 +125,7 @@ router.post("/verify-email", async (req, res, next) => {
         res.json({
             success: true,
             email: user.email,
+            full_name: user.full_name,
             role: user.role,
         })
     } catch (err) {
@@ -173,7 +175,7 @@ router.post("/login", validate(schemas.login), async (req, res, next) => {
     const { email, password } = req.body
     try {
         const result = await pool.query(
-            "SELECT id, email, role, password_hash, is_verified FROM users WHERE email=$1",
+            "SELECT id, email, full_name, role, password_hash, is_verified FROM users WHERE email=$1",
             [email],
         )
         const user = result.rows[0]
@@ -194,6 +196,7 @@ router.post("/login", validate(schemas.login), async (req, res, next) => {
             access_token: accessToken,
             refresh_token: refreshToken,
             email: user.email,
+            full_name: user.full_name,
             role: user.role,
             is_verified: user.is_verified,
         })
@@ -249,7 +252,7 @@ router.post("/logout", auth, async (req, res, next) => {
 router.get("/me", auth, async (req, res, next) => {
     try {
         const result = await pool.query(
-            "SELECT id, email, role, is_verified, created_at FROM users WHERE id=$1",
+            "SELECT id, email, full_name, role, is_verified, created_at FROM users WHERE id=$1",
             [req.user.id],
         )
         if (result.rows.length === 0) return res.status(404).json({ message: "Not found" })

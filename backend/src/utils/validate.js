@@ -63,6 +63,12 @@ const humanText = Joi.extend((joi) => ({
 
 const schemas = {
     register: Joi.object({
+        full_name: Joi.string().trim().min(2).max(100).required().messages({
+            "string.empty": "Vui lòng nhập họ và tên",
+            "string.min": "Họ và tên phải có ít nhất 2 ký tự",
+            "string.max": "Họ và tên không vượt quá 100 ký tự",
+            "any.required": "Vui lòng nhập họ và tên",
+        }),
         email: Joi.string().email({ tlds: { allow: false } }).required(),
         password: passwordValidator,
         role: Joi.string().valid("job_seeker", "recruiter").default("job_seeker"),

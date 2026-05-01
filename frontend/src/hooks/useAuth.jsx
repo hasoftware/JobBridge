@@ -47,13 +47,14 @@ export function AuthProvider({ children }) {
     token.set(data.access_token, data.refresh_token)
     return persist({
       email: data.email,
+      full_name: data.full_name || '',
       role: data.role,
       is_verified: !!data.is_verified,
     })
   }, [persist])
 
-  const register = useCallback(async (email, password, role) => {
-    const data = await auth.register(email, password, role)
+  const register = useCallback(async ({ full_name, email, password, role }) => {
+    const data = await auth.register({ full_name, email, password, role })
     setPending({
       token: data.pending_token,
       email: data.email,

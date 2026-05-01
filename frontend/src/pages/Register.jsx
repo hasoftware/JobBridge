@@ -18,6 +18,7 @@ export default function Register() {
     const [step, setStep] = useState(1)
     const [role, setRole] = useState('job_seeker')
     const [formData, setFormData] = useState({
+        full_name: '',
         email: '',
         password: '',
         confirmPassword: '',
@@ -34,6 +35,14 @@ export default function Register() {
 
     const validate = () => {
         const newErrors = {}
+        const trimmedName = formData.full_name.trim()
+        if (!trimmedName) {
+            newErrors.full_name = 'Vui lòng nhập họ và tên'
+        } else if (trimmedName.length < 2) {
+            newErrors.full_name = 'Họ và tên phải có ít nhất 2 ký tự'
+        } else if (trimmedName.length > 100) {
+            newErrors.full_name = 'Họ và tên không vượt quá 100 ký tự'
+        }
         if (!formData.email.trim()) {
             newErrors.email = 'Vui lòng nhập email'
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -76,7 +85,12 @@ export default function Register() {
         setApiError('')
         setApiErrorList([])
         try {
-            await register(formData.email, formData.password, role)
+            await register({
+                full_name: formData.full_name.trim(),
+                email: formData.email,
+                password: formData.password,
+                role,
+            })
             navigate('/verify-email')
         } catch (err) {
             if (err.errors && err.errors.length > 0) {
@@ -145,6 +159,20 @@ export default function Register() {
 
                     {step === 2 && (
                         <>
+                            <div className={`form-group ${errors.full_name ? 'has-error' : ''}`}>
+                                <label htmlFor="full_name">Họ và tên</label>
+                                <input
+                                    type="text"
+                                    id="full_name"
+                                    name="full_name"
+                                    placeholder="Nguyễn Văn A"
+                                    autoComplete="name"
+                                    value={formData.full_name}
+                                    onChange={handleChange}
+                                />
+                                {errors.full_name && <span className="form-error">{errors.full_name}</span>}
+                            </div>
+
                             <div className={`form-group ${errors.email ? 'has-error' : ''}`}>
                                 <label htmlFor="email">Email</label>
                                 <input

@@ -23,7 +23,8 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [menuOpen])
 
-  const initial = (user?.email || '?').charAt(0).toUpperCase()
+  const displayName = user?.full_name?.trim() || user?.email || ''
+  const initial = (displayName || '?').charAt(0).toUpperCase()
 
   const handleLogout = async () => {
     setMenuOpen(false)
@@ -62,7 +63,7 @@ export default function Navbar() {
                 aria-expanded={menuOpen}
               >
                 <span className="navbar-user-avatar">{initial}</span>
-                <span className="navbar-user-email">{user?.email}</span>
+                <span className="navbar-user-email">{displayName}</span>
                 <span className="navbar-user-chevron" aria-hidden="true">▾</span>
               </button>
               {menuOpen && (
