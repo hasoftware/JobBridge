@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useToast } from '../../hooks/useToast'
 import { auth as authApi, token as tokenStore } from '../../services/api'
+import Setup2FAModal from '../../components/security/Setup2FAModal'
 import './SecuritySettings.css'
 
 const PASSWORD_RULES = [
@@ -40,6 +41,50 @@ export default function SecuritySettings() {
     const [sessions, setSessions] = useState([])
     const [sessionsLoading, setSessionsLoading] = useState(true)
     const [revoking, setRevoking] = useState(false)
+
+    const [twoFAStatus, setTwoFAStatus] = useState({ enabled: false, backup_remaining: 0 })
+    const [twoFALoading, setTwoFALoading] = useState(true)
+    const [setupOpen, setSetupOpen] = useState(false)
+    const [disableOpen, setDisableOpen] = useState(false)
+    const [disablePassword, setDisablePassword] = useState('')
+    const [disableCode, setDisableCode] = useState('')
+    const [disableBusy, setDisableBusy] = useState(false)
+    const [disableErr, setDisableErr] = useState('')
+
+    const loadTwoFAStatus = async () => {
+        try {
+            const data = await authApi.twoFA.status()
+            setTwoFAStatus(data)
+        } catch {
+            setTwoFAStatus({ enabled: false, backup_remaining: 0 })
+        } finally {
+            setTwoFALoading(false)
+        }
+    }
+
+    useEffect(() => { loadTwoFAStatus() }, [])
+
+    const handleDisable2FA = async (e) => {
+        e.preventDefault()
+        if (!disablePassword || !/^\d{6}$/.test(disableCode)) {
+            setDisableErr('Vui lòng nhập đầy đủ mật khẩu và 6 chữ số mã 2FA')
+            return
+        }
+        setDisableBusy(true)
+        setDisableErr('')
+        try {
+            await authApi.twoFA.disable(disablePassword, disableCode)
+            addToast('Đã tắt xác thực 2 bước', 'info')
+            setDisableOpen(false)
+            setDisablePassword('')
+            setDisableCode('')
+            loadTwoFAStatus()
+        } catch (err) {
+            setDisableErr(err.message || 'Tắt 2FA thất bại')
+        } finally {
+            setDisableBusy(false)
+        }
+    }
 
     const passwordChecks = useMemo(
         () => PASSWORD_RULES.map((r) => ({ ...r, ok: r.test(pwForm.next) })),
@@ -223,17 +268,78 @@ export default function SecuritySettings() {
                 <div className="security-card-head">
                     <div>
                         <h2>Xác minh 2 bước (2FA)</h2>
-                        <p>Tăng cường bảo mật với mã xác thực một lần từ ứng dụng.</p>
+                        <p>Bảo vệ tài khoản bằng mã xác thực một lần từ app như Google Authenticator, Authy.</p>
                     </div>
-                    <span className="security-badge security-badge-warning">Chưa kích hoạt</span>
+                    {twoFALoading ? (
+                        <span className="security-hint">Đang tải...</span>
+                    ) : twoFAStatus.enabled ? (
+                        <span className="security-badge security-badge-success">Đã kích hoạt</span>
+                    ) : (
+                        <span className="security-badge security-badge-warning">Chưa kích hoạt</span>
+                    )}
                 </div>
-                <div className="security-2fa-body">
-                    <button type="button" className="btn btn-primary" disabled>
-                        Kích hoạt 2FA
-                    </button>
-                    <span className="security-hint">Tính năng sắp ra mắt</span>
-                </div>
+                {!twoFALoading && (
+                    <div className="security-2fa-body">
+                        {twoFAStatus.enabled ? (
+                            <>
+                                <span className="security-hint">Còn {twoFAStatus.backup_remaining} mã khôi phục.</span>
+                                <button type="button" className="btn btn-outline btn-danger" onClick={() => setDisableOpen(true)}>
+                                    Tắt 2FA
+                                </button>
+                            </>
+                        ) : (
+                            <button type="button" className="btn btn-primary" onClick={() => setSetupOpen(true)}>
+                                Kích hoạt 2FA
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {disableOpen && (
+                    <form className="security-form" onSubmit={handleDisable2FA} noValidate>
+                        <div className="security-field">
+                            <label>Mật khẩu hiện tại</label>
+                            <input
+                                type="password"
+                                value={disablePassword}
+                                onChange={(e) => { setDisablePassword(e.target.value); setDisableErr('') }}
+                                autoComplete="current-password"
+                            />
+                        </div>
+                        <div className="security-field">
+                            <label>Mã 2FA (6 chữ số)</label>
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={6}
+                                value={disableCode}
+                                onChange={(e) => { setDisableCode(e.target.value.replace(/\D/g, '')); setDisableErr('') }}
+                                autoComplete="one-time-code"
+                            />
+                        </div>
+                        {disableErr && <div className="security-api-error">{disableErr}</div>}
+                        <div className="security-form-actions">
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                onClick={() => { setDisableOpen(false); setDisableErr(''); setDisablePassword(''); setDisableCode('') }}
+                                disabled={disableBusy}
+                            >
+                                Hủy
+                            </button>
+                            <button type="submit" className="btn btn-primary btn-danger" disabled={disableBusy}>
+                                {disableBusy ? 'Đang xử lý...' : 'Xác nhận tắt 2FA'}
+                            </button>
+                        </div>
+                    </form>
+                )}
             </section>
+
+            <Setup2FAModal
+                open={setupOpen}
+                onClose={() => setSetupOpen(false)}
+                onSuccess={loadTwoFAStatus}
+            />
 
             <section id="section-sessions" className="security-card">
                 <div className="security-card-head">

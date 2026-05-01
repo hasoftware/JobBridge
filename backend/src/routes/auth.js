@@ -2,6 +2,7 @@ const express = require("express")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const crypto = require("crypto")
+const { authenticator } = require("otplib")
 
 const pool = require("../../config/db")
 const { jwt: jwtConfig } = require("../../config")
@@ -181,11 +182,59 @@ router.post("/resend-otp", async (req, res, next) => {
     }
 })
 
+const TWO_FA_PENDING_PURPOSE = "2fa_pending"
+const TWO_FA_PENDING_TTL_SEC = 5 * 60
+const BACKUP_CODE_COUNT = 10
+const BACKUP_CODE_LENGTH = 8
+
+function signTwoFAPendingToken(userId) {
+    return jwt.sign(
+        { id: userId, purpose: TWO_FA_PENDING_PURPOSE },
+        jwtConfig.secret,
+        { expiresIn: TWO_FA_PENDING_TTL_SEC },
+    )
+}
+
+function generateBackupCodes() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    const codes = []
+    for (let i = 0; i < BACKUP_CODE_COUNT; i++) {
+        let c = ""
+        for (let j = 0; j < BACKUP_CODE_LENGTH; j++) {
+            c += chars[crypto.randomInt(0, chars.length)]
+        }
+        codes.push(c)
+    }
+    return codes
+}
+
+async function hashBackupCodes(codes) {
+    return Promise.all(codes.map((c) => bcrypt.hash(c, 10)))
+}
+
+async function issueLoginTokens(user, res) {
+    const { accessToken, refreshToken } = signTokens(user)
+    const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex")
+    await pool.query(
+        "INSERT INTO refresh_tokens(user_id, token, expires_at) VALUES($1, $2, NOW() + INTERVAL '30 days')",
+        [user.id, tokenHash],
+    )
+    res.json({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        public_id: user.public_id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        is_verified: user.is_verified,
+    })
+}
+
 router.post("/login", validate(schemas.login), async (req, res, next) => {
     const { email, password } = req.body
     try {
         const result = await pool.query(
-            "SELECT id, public_id, email, full_name, role, password_hash, is_verified FROM users WHERE email=$1",
+            "SELECT id, public_id, email, full_name, role, password_hash, is_verified, two_factor_enabled FROM users WHERE email=$1",
             [email],
         )
         const user = result.rows[0]
@@ -194,22 +243,191 @@ router.post("/login", validate(schemas.login), async (req, res, next) => {
         const valid = await bcrypt.compare(password, user.password_hash)
         if (!valid) return res.status(401).json({ message: "Sai email hoặc mật khẩu" })
 
-        const { accessToken, refreshToken } = signTokens(user)
-        const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex")
+        if (user.two_factor_enabled) {
+            return res.json({
+                requires_2fa: true,
+                pending_2fa_token: signTwoFAPendingToken(user.id),
+            })
+        }
+
+        await issueLoginTokens(user, res)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.post("/2fa/verify", async (req, res, next) => {
+    const { pending_2fa_token, code } = req.body
+    if (!pending_2fa_token || !code) {
+        return res.status(400).json({ message: "Thiếu thông tin xác thực" })
+    }
+    try {
+        let payload
+        try {
+            payload = jwt.verify(pending_2fa_token, jwtConfig.secret)
+        } catch {
+            return res.status(401).json({ message: "Mã xác thực đã hết hạn, vui lòng đăng nhập lại" })
+        }
+        if (payload.purpose !== TWO_FA_PENDING_PURPOSE) {
+            return res.status(401).json({ message: "Token không hợp lệ" })
+        }
+
+        const result = await pool.query(
+            "SELECT id, public_id, email, full_name, role, is_verified, two_factor_enabled, two_factor_secret, two_factor_backup_codes FROM users WHERE id=$1",
+            [payload.id],
+        )
+        const user = result.rows[0]
+        if (!user || !user.two_factor_enabled || !user.two_factor_secret) {
+            return res.status(400).json({ message: "Tài khoản chưa bật 2FA" })
+        }
+
+        const cleanCode = String(code).replace(/[^A-Za-z0-9]/g, "")
+        let ok = false
+        let usedBackup = false
+
+        if (/^\d{6}$/.test(cleanCode)) {
+            ok = authenticator.check(cleanCode, user.two_factor_secret)
+        } else {
+            const codeUpper = cleanCode.toUpperCase()
+            const backupCodes = user.two_factor_backup_codes || []
+            for (let i = 0; i < backupCodes.length; i++) {
+                if (await bcrypt.compare(codeUpper, backupCodes[i])) {
+                    const remaining = backupCodes.filter((_, j) => j !== i)
+                    await pool.query(
+                        "UPDATE users SET two_factor_backup_codes=$1 WHERE id=$2",
+                        [remaining, user.id],
+                    )
+                    ok = true
+                    usedBackup = true
+                    break
+                }
+            }
+        }
+
+        if (!ok) return res.status(400).json({ message: "Mã không đúng" })
+
+        await issueLoginTokens(user, res)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.post("/2fa/setup", auth, async (req, res, next) => {
+    try {
+        const result = await pool.query("SELECT email, two_factor_enabled FROM users WHERE id=$1", [req.user.id])
+        const user = result.rows[0]
+        if (!user) return res.status(404).json({ message: "Không tìm thấy tài khoản" })
+        if (user.two_factor_enabled) return res.status(400).json({ message: "Tài khoản đã bật 2FA" })
+
+        const secret = authenticator.generateSecret()
+        const otpauthUrl = authenticator.keyuri(user.email, "JobBridge", secret)
+        res.json({ secret, otpauth_url: otpauthUrl })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.post("/2fa/enable", auth, async (req, res, next) => {
+    const { secret, code } = req.body
+    if (!secret || !code) {
+        return res.status(400).json({ message: "Thiếu thông tin" })
+    }
+    if (!/^\d{6}$/.test(String(code))) {
+        return res.status(400).json({ message: "Mã phải là 6 chữ số" })
+    }
+    try {
+        const result = await pool.query("SELECT two_factor_enabled FROM users WHERE id=$1", [req.user.id])
+        const user = result.rows[0]
+        if (!user) return res.status(404).json({ message: "Không tìm thấy tài khoản" })
+        if (user.two_factor_enabled) return res.status(400).json({ message: "Tài khoản đã bật 2FA" })
+
+        const ok = authenticator.check(String(code), secret)
+        if (!ok) return res.status(400).json({ message: "Mã không đúng, vui lòng thử lại" })
+
+        const codes = generateBackupCodes()
+        const codeHashes = await hashBackupCodes(codes)
 
         await pool.query(
-            "INSERT INTO refresh_tokens(user_id, token, expires_at) VALUES($1, $2, NOW() + INTERVAL '30 days')",
-            [user.id, tokenHash],
+            "UPDATE users SET two_factor_enabled=true, two_factor_secret=$1, two_factor_backup_codes=$2 WHERE id=$3",
+            [secret, codeHashes, req.user.id],
         )
 
+        res.json({ success: true, backup_codes: codes })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.post("/2fa/disable", auth, async (req, res, next) => {
+    const { password, code } = req.body
+    if (!password || !code) {
+        return res.status(400).json({ message: "Vui lòng nhập mật khẩu và mã xác thực" })
+    }
+    try {
+        const result = await pool.query(
+            "SELECT password_hash, two_factor_enabled, two_factor_secret FROM users WHERE id=$1",
+            [req.user.id],
+        )
+        const user = result.rows[0]
+        if (!user) return res.status(404).json({ message: "Không tìm thấy tài khoản" })
+        if (!user.two_factor_enabled) return res.status(400).json({ message: "Tài khoản chưa bật 2FA" })
+
+        const passwordOk = await bcrypt.compare(password, user.password_hash)
+        if (!passwordOk) return res.status(400).json({ message: "Mật khẩu không đúng" })
+
+        const codeOk = /^\d{6}$/.test(String(code)) && authenticator.check(String(code), user.two_factor_secret)
+        if (!codeOk) return res.status(400).json({ message: "Mã 2FA không đúng" })
+
+        await pool.query(
+            "UPDATE users SET two_factor_enabled=false, two_factor_secret=NULL, two_factor_backup_codes=NULL WHERE id=$1",
+            [req.user.id],
+        )
+
+        res.json({ success: true })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.post("/2fa/regenerate-backup-codes", auth, async (req, res, next) => {
+    const { code } = req.body
+    if (!code) return res.status(400).json({ message: "Vui lòng nhập mã 2FA" })
+    try {
+        const result = await pool.query(
+            "SELECT two_factor_enabled, two_factor_secret FROM users WHERE id=$1",
+            [req.user.id],
+        )
+        const user = result.rows[0]
+        if (!user || !user.two_factor_enabled) {
+            return res.status(400).json({ message: "Tài khoản chưa bật 2FA" })
+        }
+
+        const ok = /^\d{6}$/.test(String(code)) && authenticator.check(String(code), user.two_factor_secret)
+        if (!ok) return res.status(400).json({ message: "Mã không đúng" })
+
+        const codes = generateBackupCodes()
+        const codeHashes = await hashBackupCodes(codes)
+        await pool.query(
+            "UPDATE users SET two_factor_backup_codes=$1 WHERE id=$2",
+            [codeHashes, req.user.id],
+        )
+
+        res.json({ backup_codes: codes })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.get("/2fa/status", auth, async (req, res, next) => {
+    try {
+        const result = await pool.query(
+            "SELECT two_factor_enabled, COALESCE(array_length(two_factor_backup_codes, 1), 0) AS backup_remaining FROM users WHERE id=$1",
+            [req.user.id],
+        )
+        const user = result.rows[0]
         res.json({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-            public_id: user.public_id,
-            email: user.email,
-            full_name: user.full_name,
-            role: user.role,
-            is_verified: user.is_verified,
+            enabled: !!user?.two_factor_enabled,
+            backup_remaining: Number(user?.backup_remaining || 0),
         })
     } catch (err) {
         next(err)
@@ -375,7 +593,7 @@ router.delete("/sessions", auth, async (req, res, next) => {
 router.get("/me", auth, async (req, res, next) => {
     try {
         const result = await pool.query(
-            "SELECT id, public_id, email, full_name, phone, date_of_birth, gender, address, bio, role, is_verified, created_at FROM users WHERE id=$1",
+            "SELECT id, public_id, email, full_name, phone, date_of_birth, gender, address, bio, role, is_verified, two_factor_enabled, created_at FROM users WHERE id=$1",
             [req.user.id],
         )
         if (result.rows.length === 0) return res.status(404).json({ message: "Not found" })

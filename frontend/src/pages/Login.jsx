@@ -49,6 +49,15 @@ export default function Login() {
     setApiError('')
     try {
       const userData = await login(formData.email, formData.password)
+      if (userData.requires_2fa) {
+        navigate('/login/2fa', {
+          state: {
+            pending_2fa_token: userData.pending_2fa_token,
+            redirectTo,
+          },
+        })
+        return
+      }
       addToast('Đăng nhập thành công', 'success')
       if (userData.role === 'admin') {
         navigate('/admin')

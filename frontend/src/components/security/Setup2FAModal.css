@@ -1,0 +1,153 @@
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    overflow-y: auto;
+}
+
+.modal-card {
+    background: #fff;
+    border-radius: 14px;
+    width: min(480px, 100%);
+    max-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-head h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.modal-close {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    background: #f1f5f9;
+}
+
+.modal-body {
+    padding: 20px 22px;
+    overflow-y: auto;
+}
+
+.modal-loading {
+    text-align: center;
+    color: #64748b;
+    padding: 30px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.setup-steps {
+    margin: 0 0 16px;
+    padding-left: 18px;
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.setup-steps li {
+    margin-bottom: 4px;
+}
+
+.setup-qr-box {
+    display: flex;
+    justify-content: center;
+    padding: 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 14px;
+}
+
+.setup-secret {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+}
+
+.setup-secret label {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.setup-secret code {
+    background: #f1f5f9;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #0f172a;
+    user-select: all;
+    word-break: break-all;
+}
+
+.setup-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.setup-field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.setup-field input {
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 6px;
+    font-weight: 600;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: 'Courier New', monospace;
+}
+
+.setup-field input:focus {
+    border-color: #2563eb;
+}
+
+.setup-error {
+    margin-top: 10px;
+    color: #dc2626;
+    font-size: 12.5px;
+}

@@ -61,6 +61,11 @@
     color: #b45309;
 }
 
+.security-badge-success {
+    background: #d1fae5;
+    color: #047857;
+}
+
 .security-form {
     margin-top: 18px;
     padding-top: 18px;

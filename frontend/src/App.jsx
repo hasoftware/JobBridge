@@ -7,6 +7,7 @@ import ToastContainer from "./components/common/Toast"
 
 import Home from "./pages/Home"
 import Login from "./pages/Login"
+import Login2FA from "./pages/Login2FA"
 import Register from "./pages/Register"
 import Onboarding from "./pages/Onboarding"
 import VerifyEmail from "./pages/VerifyEmail"
@@ -82,6 +83,7 @@ export default function App() {
                         <Route path="cv-templates" element={<CVTemplates />} />
                         <Route path="cv-builder" element={<CVBuilder />} />
                         <Route path="login" element={<GuestOnly><Login /></GuestOnly>} />
+                        <Route path="login/2fa" element={<GuestOnly><Login2FA /></GuestOnly>} />
                         <Route path="register" element={<GuestOnly><Register /></GuestOnly>} />
                         <Route path="onboarding" element={<Onboarding />} />
                         <Route path="verify-email" element={<VerifyEmail />} />
