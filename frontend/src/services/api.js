@@ -116,6 +116,11 @@ export const auth = {
     method: "DELETE",
     body: JSON.stringify({ current_refresh_token }),
   }),
+  getNotificationSettings: () => apiFetch("/auth/notification-settings"),
+  updateNotificationSettings: (payload) => apiFetch("/auth/notification-settings", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  }),
 }
 
 export const admin = {

@@ -260,6 +260,53 @@ router.post("/logout", auth, async (req, res, next) => {
     }
 })
 
+const DEFAULT_NOTIFICATION_SETTINGS = {
+    inApp: {
+        jobMatches: true,
+        savedJobs: true,
+        applicationStatus: true,
+        profileViews: true,
+        recruiterMessages: true,
+    },
+    email: {
+        jobSuggestions: "weekly",
+        applicationUpdates: true,
+        recruiterEmail: true,
+        newsletter: false,
+    },
+}
+
+function mergeNotificationSettings(stored, incoming) {
+    const base = stored || {}
+    return {
+        inApp: { ...DEFAULT_NOTIFICATION_SETTINGS.inApp, ...(base.inApp || {}), ...(incoming?.inApp || {}) },
+        email: { ...DEFAULT_NOTIFICATION_SETTINGS.email, ...(base.email || {}), ...(incoming?.email || {}) },
+    }
+}
+
+router.get("/notification-settings", auth, async (req, res, next) => {
+    try {
+        const { rows } = await pool.query("SELECT notification_settings FROM users WHERE id=$1", [req.user.id])
+        res.json(mergeNotificationSettings(rows[0]?.notification_settings, null))
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.patch("/notification-settings", auth, validate(schemas.notificationSettings), async (req, res, next) => {
+    try {
+        const { rows } = await pool.query("SELECT notification_settings FROM users WHERE id=$1", [req.user.id])
+        const merged = mergeNotificationSettings(rows[0]?.notification_settings, req.body)
+        await pool.query(
+            "UPDATE users SET notification_settings=$1::jsonb WHERE id=$2",
+            [JSON.stringify(merged), req.user.id],
+        )
+        res.json(merged)
+    } catch (err) {
+        next(err)
+    }
+})
+
 router.post("/change-password", auth, validate(schemas.changePassword), async (req, res, next) => {
     const { current_password, new_password } = req.body
     try {

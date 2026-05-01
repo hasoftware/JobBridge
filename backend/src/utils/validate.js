@@ -102,6 +102,22 @@ const schemas = {
         redirect_uri: Joi.string().required(),
     }),
 
+    notificationSettings: Joi.object({
+        inApp: Joi.object({
+            jobMatches: Joi.boolean(),
+            savedJobs: Joi.boolean(),
+            applicationStatus: Joi.boolean(),
+            profileViews: Joi.boolean(),
+            recruiterMessages: Joi.boolean(),
+        }),
+        email: Joi.object({
+            jobSuggestions: Joi.string().valid("daily", "weekly", "off"),
+            applicationUpdates: Joi.boolean(),
+            recruiterEmail: Joi.boolean(),
+            newsletter: Joi.boolean(),
+        }),
+    }).min(1),
+
     changePassword: Joi.object({
         current_password: Joi.string().required().messages({
             "any.required": "Vui lòng nhập mật khẩu hiện tại",

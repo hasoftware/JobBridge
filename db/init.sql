@@ -11,6 +11,7 @@ CREATE TABLE users (
     gender text CHECK (gender IN ('male', 'female', 'other')),
     address jsonb,
     bio text,
+    notification_settings jsonb,
     role text DEFAULT 'job_seeker' NOT NULL CHECK (role IN ('job_seeker', 'recruiter', 'admin')),
     is_verified boolean DEFAULT false,
     created_at timestamp DEFAULT CURRENT_TIMESTAMP

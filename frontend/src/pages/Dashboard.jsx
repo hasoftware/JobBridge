@@ -7,6 +7,7 @@ import './Dashboard.css'
 const CANDIDATE_NAV = [
   { path: 'profile', label: 'Hồ sơ' },
   { path: 'security', label: 'Bảo mật' },
+  { path: 'notifications', label: 'Thông báo' },
   { path: 'cvs', label: 'CV của tôi' },
   { path: 'applied-jobs', label: 'Đã ứng tuyển' },
   { path: 'saved-jobs', label: 'Đã lưu' },

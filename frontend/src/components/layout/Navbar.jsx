@@ -60,8 +60,8 @@ const SEEKER_SECTIONS = [
         icon: IconBell,
         title: 'Cài đặt email & thông báo',
         items: [
-            { to: '/dashboard/notifications/jobs', label: 'Cài đặt thông báo việc làm' },
-            { to: '/dashboard/notifications/email', label: 'Cài đặt nhận email' },
+            { to: '/dashboard/notifications#jobs', label: 'Cài đặt thông báo việc làm' },
+            { to: '/dashboard/notifications#email', label: 'Cài đặt nhận email' },
         ],
     },
     {

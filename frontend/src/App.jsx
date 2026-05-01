@@ -23,6 +23,7 @@ import Dashboard from "./pages/Dashboard"
 const NotFound = lazy(() => import("./pages/NotFound"))
 const ProfileSettings = lazy(() => import("./pages/dashboard/ProfileSettings"))
 const SecuritySettings = lazy(() => import("./pages/dashboard/SecuritySettings"))
+const NotificationSettings = lazy(() => import("./pages/dashboard/NotificationSettings"))
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"))
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
@@ -80,6 +81,7 @@ export default function App() {
                         <Route index element={<Navigate to="profile" replace />} />
                         <Route path="profile" element={<ProfileSettings />} />
                         <Route path="security" element={<SecuritySettings />} />
+                        <Route path="notifications" element={<NotificationSettings />} />
                     </Route>
                     <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
