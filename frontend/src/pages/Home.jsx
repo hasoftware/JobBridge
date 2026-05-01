@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import './Home.css'
 
 const FEATURED_JOBS = [
@@ -13,8 +14,11 @@ const SEARCH_TAGS = ['Frontend Developer', 'Marketing', 'Kế toán', 'Data Anal
 
 export default function Home() {
     const navigate = useNavigate()
+    const { isAuthenticated, isRecruiter } = useAuth()
     const [keyword, setKeyword] = useState('')
     const [location, setLocation] = useState('')
+
+    const showRecruiterCta = !isAuthenticated || isRecruiter
 
     const handleSearch = (e) => {
         e.preventDefault()
@@ -80,13 +84,29 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="cta">
-                <div className="container">
-                    <h2>Bạn là nhà tuyển dụng?</h2>
-                    <p>Đăng tin tuyển dụng và tiếp cận hàng ngàn ứng viên chất lượng</p>
-                    <button className="btn btn-primary" onClick={() => navigate('/register')}>Đăng tin ngay</button>
-                </div>
-            </section>
+            {showRecruiterCta && (
+                <section className="cta">
+                    <div className="container">
+                        {isRecruiter ? (
+                            <>
+                                <h2>Đăng tin tuyển dụng mới</h2>
+                                <p>Tiếp cận hàng ngàn ứng viên chất lượng từ JobBridge.</p>
+                                <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
+                                    Vào trang quản lý
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h2>Bạn là nhà tuyển dụng?</h2>
+                                <p>Đăng tin tuyển dụng và tiếp cận hàng ngàn ứng viên chất lượng.</p>
+                                <button className="btn btn-primary" onClick={() => navigate('/register')}>
+                                    Đăng tin ngay
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </section>
+            )}
         </div>
     )
 }
