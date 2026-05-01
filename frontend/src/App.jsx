@@ -40,6 +40,14 @@ function PageLoader() {
 
 const GUARD_EXEMPT = ["/onboarding", "/verify-email", "/oauth/callback", "/login", "/register"]
 
+function GuestOnly({ children }) {
+    const { isAuthenticated, isAdmin } = useAuth()
+    if (isAuthenticated) {
+        return <Navigate to={isAdmin ? "/admin" : "/"} replace />
+    }
+    return children
+}
+
 function AuthGuardRedirect() {
     const { user, isAuthenticated, isVerified } = useAuth()
     const navigate = useNavigate()
@@ -70,8 +78,8 @@ export default function App() {
                         <Route path="jobs/:id" element={<JobDetail />} />
                         <Route path="companies/:name" element={<CompanyPage />} />
                         <Route path="cv-builder" element={<CVBuilder />} />
-                        <Route path="login" element={<Login />} />
-                        <Route path="register" element={<Register />} />
+                        <Route path="login" element={<GuestOnly><Login /></GuestOnly>} />
+                        <Route path="register" element={<GuestOnly><Register /></GuestOnly>} />
                         <Route path="onboarding" element={<Onboarding />} />
                         <Route path="verify-email" element={<VerifyEmail />} />
                         <Route path="register-success" element={<RegisterSuccess />} />
