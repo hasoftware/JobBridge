@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
     const data = await auth.login(email, password)
     token.set(data.access_token, data.refresh_token)
     return persist({
+      public_id: data.public_id || null,
       email: data.email,
       full_name: data.full_name || '',
       role: data.role,

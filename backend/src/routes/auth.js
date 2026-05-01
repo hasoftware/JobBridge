@@ -32,6 +32,15 @@ function generateOtp() {
     return String(Math.floor(100000 + Math.random() * 900000))
 }
 
+async function generateUniquePublicId() {
+    for (let attempt = 0; attempt < 6; attempt++) {
+        const candidate = Math.floor(10000000 + Math.random() * 90000000)
+        const { rows } = await pool.query("SELECT 1 FROM users WHERE public_id=$1", [candidate])
+        if (rows.length === 0) return candidate
+    }
+    throw new Error("Không sinh được public_id duy nhất")
+}
+
 function signPendingToken(payload) {
     return jwt.sign(
         { ...payload, purpose: PENDING_PURPOSE },
@@ -112,9 +121,10 @@ router.post("/verify-email", async (req, res, next) => {
             return res.status(400).json({ message: "Email đã được đăng ký" })
         }
 
+        const publicId = await generateUniquePublicId()
         const result = await pool.query(
-            "INSERT INTO users(email, password_hash, full_name, role, is_verified) VALUES($1, $2, $3, $4, true) RETURNING id, email, full_name, role",
-            [payload.email, payload.password_hash, payload.full_name || null, payload.role],
+            "INSERT INTO users(email, password_hash, full_name, role, public_id, is_verified) VALUES($1, $2, $3, $4, $5, true) RETURNING id, public_id, email, full_name, role",
+            [payload.email, payload.password_hash, payload.full_name || null, payload.role, publicId],
         )
         const user = result.rows[0]
 
@@ -175,7 +185,7 @@ router.post("/login", validate(schemas.login), async (req, res, next) => {
     const { email, password } = req.body
     try {
         const result = await pool.query(
-            "SELECT id, email, full_name, role, password_hash, is_verified FROM users WHERE email=$1",
+            "SELECT id, public_id, email, full_name, role, password_hash, is_verified FROM users WHERE email=$1",
             [email],
         )
         const user = result.rows[0]
@@ -195,6 +205,7 @@ router.post("/login", validate(schemas.login), async (req, res, next) => {
         res.json({
             access_token: accessToken,
             refresh_token: refreshToken,
+            public_id: user.public_id,
             email: user.email,
             full_name: user.full_name,
             role: user.role,
@@ -252,7 +263,7 @@ router.post("/logout", auth, async (req, res, next) => {
 router.get("/me", auth, async (req, res, next) => {
     try {
         const result = await pool.query(
-            "SELECT id, email, full_name, role, is_verified, created_at FROM users WHERE id=$1",
+            "SELECT id, public_id, email, full_name, role, is_verified, created_at FROM users WHERE id=$1",
             [req.user.id],
         )
         if (result.rows.length === 0) return res.status(404).json({ message: "Not found" })
