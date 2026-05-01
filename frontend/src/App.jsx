@@ -28,6 +28,7 @@ const SecuritySettings = lazy(() => import("./pages/dashboard/SecuritySettings")
 const NotificationSettings = lazy(() => import("./pages/dashboard/NotificationSettings"))
 const SavedJobs = lazy(() => import("./pages/dashboard/SavedJobs"))
 const MyCVs = lazy(() => import("./pages/dashboard/MyCVs"))
+const MyApplications = lazy(() => import("./pages/dashboard/MyApplications"))
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"))
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
@@ -98,6 +99,7 @@ export default function App() {
                         <Route path="notifications" element={<NotificationSettings />} />
                         <Route path="saved-jobs" element={<SavedJobs />} />
                         <Route path="cvs" element={<MyCVs />} />
+                        <Route path="applied-jobs" element={<MyApplications />} />
                     </Route>
                     <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />

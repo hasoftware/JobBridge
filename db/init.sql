@@ -62,6 +62,8 @@ CREATE TABLE applications (
     job_id uuid REFERENCES jobs(id) ON DELETE CASCADE,
     user_id integer REFERENCES users(id) ON DELETE CASCADE,
     cv_url text NOT NULL,
+    cv_id integer REFERENCES cvs(id) ON DELETE SET NULL,
+    cover_letter text,
     status text DEFAULT 'submitted',
     created_at timestamp DEFAULT now(),
     updated_at timestamp DEFAULT now()

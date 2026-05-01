@@ -166,6 +166,14 @@ export const jobs = {
   unsave: (id) => apiFetch(`/jobs/${id}/save`, { method: "DELETE" }),
 }
 
+export const applications = {
+  listMine: (params = {}) => {
+    const search = new URLSearchParams(params).toString()
+    return apiFetch(`/applications/mine${search ? `?${search}` : ''}`)
+  },
+  withdraw: (id) => apiFetch(`/applications/${id}/withdraw`, { method: "POST" }),
+}
+
 export const admin = {
   getEmailSettings: () => apiFetch("/admin/settings/email"),
   saveEmailSettings: (config) => apiFetch("/admin/settings/email", {
