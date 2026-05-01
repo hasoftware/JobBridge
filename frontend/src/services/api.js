@@ -107,6 +107,15 @@ export const auth = {
     method: "PATCH",
     body: JSON.stringify(payload),
   }),
+  changePassword: (current_password, new_password) => apiFetch("/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ current_password, new_password }),
+  }),
+  getSessions: () => apiFetch("/auth/sessions"),
+  revokeOtherSessions: (current_refresh_token) => apiFetch("/auth/sessions", {
+    method: "DELETE",
+    body: JSON.stringify({ current_refresh_token }),
+  }),
 }
 
 export const admin = {

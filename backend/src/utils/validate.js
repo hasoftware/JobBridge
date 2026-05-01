@@ -102,6 +102,14 @@ const schemas = {
         redirect_uri: Joi.string().required(),
     }),
 
+    changePassword: Joi.object({
+        current_password: Joi.string().required().messages({
+            "any.required": "Vui lòng nhập mật khẩu hiện tại",
+            "string.empty": "Vui lòng nhập mật khẩu hiện tại",
+        }),
+        new_password: passwordValidator,
+    }),
+
     profile: Joi.object({
         full_name: Joi.string().trim().min(2).max(100).messages({
             "string.min": "Họ và tên phải có ít nhất 2 ký tự",

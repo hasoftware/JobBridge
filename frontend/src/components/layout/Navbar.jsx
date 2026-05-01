@@ -70,8 +70,8 @@ const SEEKER_SECTIONS = [
         items: [
             { to: '/dashboard/profile', label: 'Cài đặt thông tin cá nhân' },
             { to: '/dashboard/security', label: 'Cài đặt bảo mật' },
-            { to: '/dashboard/security/password', label: 'Đổi mật khẩu' },
-            { to: '/dashboard/security/2fa', label: 'Xác minh 2 bước', hint: 'Chưa kích hoạt' },
+            { to: '/dashboard/security#password', label: 'Đổi mật khẩu' },
+            { to: '/dashboard/security#2fa', label: 'Xác minh 2 bước', hint: 'Chưa kích hoạt' },
         ],
     },
 ]

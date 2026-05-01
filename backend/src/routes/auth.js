@@ -260,6 +260,71 @@ router.post("/logout", auth, async (req, res, next) => {
     }
 })
 
+router.post("/change-password", auth, validate(schemas.changePassword), async (req, res, next) => {
+    const { current_password, new_password } = req.body
+    try {
+        const result = await pool.query("SELECT password_hash FROM users WHERE id=$1", [req.user.id])
+        const user = result.rows[0]
+        if (!user) return res.status(404).json({ message: "Không tìm thấy tài khoản" })
+
+        const valid = await bcrypt.compare(current_password, user.password_hash)
+        if (!valid) return res.status(400).json({ message: "Mật khẩu hiện tại không đúng" })
+
+        const same = await bcrypt.compare(new_password, user.password_hash)
+        if (same) return res.status(400).json({ message: "Mật khẩu mới phải khác mật khẩu hiện tại" })
+
+        const newHash = await bcrypt.hash(new_password, 10)
+        await pool.query("UPDATE users SET password_hash=$1 WHERE id=$2", [newHash, req.user.id])
+        await pool.query("DELETE FROM refresh_tokens WHERE user_id=$1", [req.user.id])
+
+        const userInfo = { id: req.user.id, role: req.user.role }
+        const { accessToken, refreshToken } = signTokens(userInfo)
+        const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex")
+        await pool.query(
+            "INSERT INTO refresh_tokens(user_id, token, expires_at) VALUES($1, $2, NOW() + INTERVAL '30 days')",
+            [req.user.id, tokenHash],
+        )
+
+        res.json({
+            success: true,
+            access_token: accessToken,
+            refresh_token: refreshToken,
+        })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.get("/sessions", auth, async (req, res, next) => {
+    try {
+        const { rows } = await pool.query(
+            "SELECT id, created_at, expires_at FROM refresh_tokens WHERE user_id=$1 AND expires_at > NOW() ORDER BY created_at DESC",
+            [req.user.id],
+        )
+        res.json(rows)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.delete("/sessions", auth, async (req, res, next) => {
+    const { current_refresh_token } = req.body
+    try {
+        if (current_refresh_token) {
+            const tokenHash = crypto.createHash("sha256").update(current_refresh_token).digest("hex")
+            const result = await pool.query(
+                "DELETE FROM refresh_tokens WHERE user_id=$1 AND token<>$2",
+                [req.user.id, tokenHash],
+            )
+            return res.json({ success: true, revoked: result.rowCount })
+        }
+        const result = await pool.query("DELETE FROM refresh_tokens WHERE user_id=$1", [req.user.id])
+        res.json({ success: true, revoked: result.rowCount })
+    } catch (err) {
+        next(err)
+    }
+})
+
 router.get("/me", auth, async (req, res, next) => {
     try {
         const result = await pool.query(
