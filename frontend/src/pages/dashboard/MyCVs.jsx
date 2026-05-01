@@ -78,7 +78,7 @@ export default function MyCVs() {
                     <h1>CV của tôi</h1>
                     <p>{items.length} CV</p>
                 </div>
-                <Link to="/cv-builder" className="btn btn-primary">+ Tạo CV mới</Link>
+                <Link to="/cv-templates" className="btn btn-primary">+ Tạo CV mới</Link>
             </header>
 
             {error && <div className="cvs-error">{error}</div>}
@@ -87,7 +87,7 @@ export default function MyCVs() {
                 <div className="cvs-empty">
                     <h2>Bạn chưa có CV nào</h2>
                     <p>Tạo CV đầu tiên để ứng tuyển nhanh hơn vào các tin tuyển dụng.</p>
-                    <Link to="/cv-builder" className="btn btn-primary">Tạo CV mới</Link>
+                    <Link to="/cv-templates" className="btn btn-primary">Tạo CV mới</Link>
                 </div>
             ) : (
                 <ul className="cvs-list">

@@ -18,6 +18,7 @@ import JobDetail from "./pages/JobDetail"
 import CompanyPage from "./pages/CompanyPage"
 // const CompanyPage = lazy(() => import('./pages/CompanyPage'))
 const CVBuilder = lazy(() => import("./pages/CVBuilder"))
+const CVTemplates = lazy(() => import("./pages/CVTemplates"))
 import Dashboard from "./pages/Dashboard"
 // const Dashboard = lazy(() => import('./pages/Dashboard'))
 const NotFound = lazy(() => import("./pages/NotFound"))
@@ -78,6 +79,7 @@ export default function App() {
                         <Route path="jobs" element={<Jobs />} />
                         <Route path="jobs/:id" element={<JobDetail />} />
                         <Route path="companies/:name" element={<CompanyPage />} />
+                        <Route path="cv-templates" element={<CVTemplates />} />
                         <Route path="cv-builder" element={<CVBuilder />} />
                         <Route path="login" element={<GuestOnly><Login /></GuestOnly>} />
                         <Route path="register" element={<GuestOnly><Register /></GuestOnly>} />

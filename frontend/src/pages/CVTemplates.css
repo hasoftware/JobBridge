@@ -1,0 +1,76 @@
+.tpls-page {
+    background: #f8fafc;
+    min-height: calc(100vh - 64px);
+    padding: 32px 0 60px;
+}
+
+.tpls-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.tpls-header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.tpls-header p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.tpls-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 28px;
+}
+
+.tpls-chip {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.tpls-chip:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.tpls-chip.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.tpls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.tpls-empty {
+    text-align: center;
+    padding: 40px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+@media (max-width: 720px) {
+    .tpls-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}

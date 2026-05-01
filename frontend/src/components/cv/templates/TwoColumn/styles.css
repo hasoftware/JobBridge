@@ -1,0 +1,139 @@
+.tpl-two-column {
+    display: grid;
+    grid-template-columns: 35% 65%;
+    background: #fff;
+    color: #0f172a;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12.5px;
+    line-height: 1.5;
+    width: 210mm;
+    min-height: 297mm;
+    box-sizing: border-box;
+}
+
+.tpl-two-column .cv-side {
+    background: var(--cv-accent);
+    color: #fff;
+    padding: 32px 22px;
+}
+
+.tpl-two-column .cv-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    line-height: 1.2;
+}
+
+.tpl-two-column .cv-headline {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-bottom: 22px;
+}
+
+.tpl-two-column .cv-side-section {
+    margin-bottom: 22px;
+    page-break-inside: avoid;
+}
+
+.tpl-two-column .cv-side-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin: 0 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.tpl-two-column .cv-side-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: #fff;
+}
+
+.tpl-two-column .cv-side-list li {
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.tpl-two-column .cv-side-skill {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.tpl-two-column .cv-side-skill-name {
+    font-weight: 600;
+}
+
+.tpl-two-column .cv-side-skill-level {
+    opacity: 0.75;
+    font-size: 11px;
+}
+
+.tpl-two-column .cv-main {
+    padding: 32px 28px 32px 28px;
+}
+
+.tpl-two-column .cv-main-section {
+    margin-bottom: 18px;
+    page-break-inside: avoid;
+}
+
+.tpl-two-column .cv-main-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cv-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 0 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--cv-accent);
+}
+
+.tpl-two-column .cv-summary {
+    margin: 0;
+    color: #334155;
+    white-space: pre-wrap;
+}
+
+.tpl-two-column .cv-item {
+    margin-bottom: 12px;
+    page-break-inside: avoid;
+}
+
+.tpl-two-column .cv-item-head {
+    margin-bottom: 4px;
+}
+
+.tpl-two-column .cv-item-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.tpl-two-column .cv-item-sub {
+    font-size: 12px;
+    color: var(--cv-accent);
+    font-weight: 500;
+}
+
+.tpl-two-column .cv-item-period {
+    font-size: 11.5px;
+    color: #64748b;
+    margin-top: 1px;
+}
+
+.tpl-two-column .cv-item-desc {
+    font-size: 12.5px;
+    color: #334155;
+    white-space: pre-wrap;
+    margin-top: 2px;
+}

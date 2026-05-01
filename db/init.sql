@@ -85,6 +85,8 @@ CREATE TABLE cvs (
     user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title text NOT NULL,
     data jsonb NOT NULL DEFAULT '{}'::jsonb,
+    template text DEFAULT 'modern_clean',
+    color text DEFAULT '#2563eb',
     is_default boolean DEFAULT false,
     created_at timestamp DEFAULT now(),
     updated_at timestamp DEFAULT now()

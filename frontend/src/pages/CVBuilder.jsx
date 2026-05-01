@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import html2pdf from 'html2pdf.js'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
 import { auth as authApi, cvs as cvsApi } from '../services/api'
 import CVPreview from '../components/cv/CVPreview'
+import CVTemplatePicker from '../components/cv/CVTemplatePicker'
+import { TEMPLATES, getTemplate } from '../components/cv/templates'
 import './CVBuilder.css'
 
 const EMPTY_DATA = {
@@ -43,19 +45,32 @@ export default function CVBuilder() {
     const { isAuthenticated } = useAuth()
     const { addToast } = useToast()
 
+    const queryTemplate = searchParams.get('template')
+    const queryColor = searchParams.get('color')
+
     const [title, setTitle] = useState('CV của tôi')
     const [data, setData] = useState(EMPTY_DATA)
+    const [template, setTemplate] = useState(queryTemplate && TEMPLATES[queryTemplate] ? queryTemplate : 'modern_clean')
+    const [color, setColor] = useState(queryColor || getTemplate(queryTemplate).meta.defaultColor)
     const [activeTab, setActiveTab] = useState('personal')
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [exporting, setExporting] = useState(false)
+    const [pickerOpen, setPickerOpen] = useState(false)
     const previewRef = useRef(null)
 
     useEffect(() => {
         if (!isAuthenticated) {
-            navigate('/login?redirect=/cv-builder', { replace: true })
+            const target = `/cv-builder${window.location.search}`
+            navigate(`/login?redirect=${encodeURIComponent(target)}`, { replace: true })
         }
     }, [isAuthenticated, navigate])
+
+    useEffect(() => {
+        if (!cvId && !queryTemplate) {
+            navigate('/cv-templates', { replace: true })
+        }
+    }, [cvId, queryTemplate, navigate])
 
     useEffect(() => {
         let cancelled = false
@@ -66,6 +81,8 @@ export default function CVBuilder() {
                     if (cancelled) return
                     setTitle(cv.title)
                     setData({ ...EMPTY_DATA, ...(cv.data || {}) })
+                    if (cv.template && TEMPLATES[cv.template]) setTemplate(cv.template)
+                    if (cv.color) setColor(cv.color)
                 } else {
                     const me = await authApi.me()
                     if (cancelled) return
@@ -141,11 +158,12 @@ export default function CVBuilder() {
         }
         setSaving(true)
         try {
+            const payload = { title: title.trim(), data, template, color }
             if (cvId) {
-                await cvsApi.update(cvId, { title: title.trim(), data })
+                await cvsApi.update(cvId, payload)
                 addToast('Đã lưu CV', 'success')
             } else {
-                const created = await cvsApi.create({ title: title.trim(), data })
+                const created = await cvsApi.create(payload)
                 addToast('Đã tạo CV mới', 'success')
                 navigate(`/cv-builder?id=${created.id}`, { replace: true })
             }
@@ -155,6 +173,14 @@ export default function CVBuilder() {
             setSaving(false)
         }
     }
+
+    const handleChangeTemplate = (newTemplate, newColor) => {
+        setTemplate(newTemplate)
+        setColor(newColor || getTemplate(newTemplate).meta.defaultColor)
+        setPickerOpen(false)
+    }
+
+    const currentMeta = getTemplate(template).meta
 
     const handleExportPdf = async () => {
         if (!previewRef.current) return
@@ -197,6 +223,28 @@ export default function CVBuilder() {
                     placeholder="Tên CV..."
                     maxLength={100}
                 />
+
+                <div className="cvb-topbar-meta">
+                    <button type="button" className="cvb-template-btn" onClick={() => setPickerOpen(true)}>
+                        <span className="cvb-template-label">Mẫu:</span>
+                        <span className="cvb-template-name">{currentMeta.name}</span>
+                        <span className="cvb-template-caret">▾</span>
+                    </button>
+                    <div className="cvb-color-picker">
+                        {currentMeta.palette.map((p) => (
+                            <button
+                                key={p.hex}
+                                type="button"
+                                className={`cvb-color-dot ${color.toLowerCase() === p.hex.toLowerCase() ? 'active' : ''}`}
+                                style={{ background: p.hex }}
+                                onClick={() => setColor(p.hex)}
+                                aria-label={p.name}
+                                title={p.name}
+                            />
+                        ))}
+                    </div>
+                </div>
+
                 <div className="cvb-topbar-actions">
                     <button type="button" className="btn btn-outline" onClick={handleExportPdf} disabled={exporting}>
                         {exporting ? 'Đang xuất...' : 'Tải PDF'}
@@ -206,6 +254,13 @@ export default function CVBuilder() {
                     </button>
                 </div>
             </header>
+
+            <CVTemplatePicker
+                open={pickerOpen}
+                currentTemplate={template}
+                onSelect={handleChangeTemplate}
+                onClose={() => setPickerOpen(false)}
+            />
 
             <div className="cvb-body">
                 <aside className="cvb-form">
@@ -394,7 +449,7 @@ export default function CVBuilder() {
 
                 <main className="cvb-preview">
                     <div className="cvb-preview-wrap">
-                        <CVPreview data={data} ref={previewRef} />
+                        <CVPreview data={data} template={template} color={color} ref={previewRef} />
                     </div>
                 </main>
             </div>

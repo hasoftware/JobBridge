@@ -9,7 +9,7 @@ router.use(auth)
 router.get("/", async (req, res, next) => {
     try {
         const { rows } = await pool.query(
-            "SELECT id, title, is_default, created_at, updated_at FROM cvs WHERE user_id=$1 ORDER BY updated_at DESC",
+            "SELECT id, title, template, color, is_default, created_at, updated_at FROM cvs WHERE user_id=$1 ORDER BY updated_at DESC",
             [req.user.id],
         )
         res.json(rows)
@@ -19,7 +19,7 @@ router.get("/", async (req, res, next) => {
 })
 
 router.post("/", async (req, res, next) => {
-    const { title, data } = req.body
+    const { title, data, template, color } = req.body
     if (!title || typeof title !== "string" || title.trim().length === 0) {
         return res.status(400).json({ message: "Vui lòng nhập tiêu đề CV" })
     }
@@ -28,10 +28,12 @@ router.post("/", async (req, res, next) => {
     }
     try {
         const payload = data && typeof data === "object" ? data : {}
+        const tpl = typeof template === "string" && template.trim() ? template.trim() : "modern_clean"
+        const clr = typeof color === "string" && /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#2563eb"
         const { rows } = await pool.query(
-            `INSERT INTO cvs(user_id, title, data) VALUES($1, $2, $3::jsonb)
-             RETURNING id, title, data, is_default, created_at, updated_at`,
-            [req.user.id, title.trim(), JSON.stringify(payload)],
+            `INSERT INTO cvs(user_id, title, data, template, color) VALUES($1, $2, $3::jsonb, $4, $5)
+             RETURNING id, title, data, template, color, is_default, created_at, updated_at`,
+            [req.user.id, title.trim(), JSON.stringify(payload), tpl, clr],
         )
         res.status(201).json(rows[0])
     } catch (err) {
@@ -44,7 +46,7 @@ router.get("/:id", async (req, res, next) => {
     if (!Number.isInteger(id)) return res.status(400).json({ message: "ID không hợp lệ" })
     try {
         const { rows } = await pool.query(
-            "SELECT id, title, data, is_default, created_at, updated_at FROM cvs WHERE id=$1 AND user_id=$2",
+            "SELECT id, title, data, template, color, is_default, created_at, updated_at FROM cvs WHERE id=$1 AND user_id=$2",
             [id, req.user.id],
         )
         if (rows.length === 0) return res.status(404).json({ message: "Không tìm thấy CV" })
@@ -57,7 +59,7 @@ router.get("/:id", async (req, res, next) => {
 router.put("/:id", async (req, res, next) => {
     const id = Number(req.params.id)
     if (!Number.isInteger(id)) return res.status(400).json({ message: "ID không hợp lệ" })
-    const { title, data } = req.body
+    const { title, data, template, color } = req.body
     if (title !== undefined) {
         if (typeof title !== "string" || title.trim().length === 0) {
             return res.status(400).json({ message: "Tiêu đề không hợp lệ" })
@@ -78,12 +80,26 @@ router.put("/:id", async (req, res, next) => {
             sets.push(`data=$${idx++}::jsonb`)
             params.push(JSON.stringify(data || {}))
         }
+        if (template !== undefined) {
+            if (typeof template !== "string" || !template.trim()) {
+                return res.status(400).json({ message: "Template không hợp lệ" })
+            }
+            sets.push(`template=$${idx++}`)
+            params.push(template.trim())
+        }
+        if (color !== undefined) {
+            if (typeof color !== "string" || !/^#[0-9a-fA-F]{6}$/.test(color)) {
+                return res.status(400).json({ message: "Mã màu không hợp lệ" })
+            }
+            sets.push(`color=$${idx++}`)
+            params.push(color)
+        }
         if (sets.length === 0) return res.status(400).json({ message: "Không có trường để cập nhật" })
         sets.push(`updated_at=NOW()`)
         params.push(id, req.user.id)
         const { rows } = await pool.query(
             `UPDATE cvs SET ${sets.join(", ")} WHERE id=$${idx++} AND user_id=$${idx}
-             RETURNING id, title, data, is_default, created_at, updated_at`,
+             RETURNING id, title, data, template, color, is_default, created_at, updated_at`,
             params,
         )
         if (rows.length === 0) return res.status(404).json({ message: "Không tìm thấy CV" })
