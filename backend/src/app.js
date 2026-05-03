@@ -42,7 +42,7 @@ app.use("/api/v1/cover-letters", coverLettersRoutes)
 app.use("/api", notFoundHandler)
 app.use(errorHandler)
 
-const PORT = Number(process.env.PORT || 3000)
+const PORT = Number(process.env.PORT || 5001)
 const server = app.listen(PORT, () => {
     console.log(`Backend listening on http://localhost:${PORT}`)
 })

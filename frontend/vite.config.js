@@ -1,10 +1,14 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
-import viteCompression from "vite-plugin-compression" // 1. Import it here
+import viteCompression from "vite-plugin-compression"
 
 export default defineConfig({
     plugins: [
         react(),
-        viteCompression(), // 2. Add it to your plugins array
+        viteCompression(),
     ],
+    server: {
+        port: 5000,
+        strictPort: true,
+    },
 })

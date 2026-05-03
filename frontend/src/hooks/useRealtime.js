@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react'
 
-const SSE_URL = (import.meta.env?.VITE_API_URL || 'http://localhost:3000') + '/api/v1/sse'
+const SSE_URL = (import.meta.env?.VITE_API_URL || 'http://localhost:5001') + '/api/v1/sse'
 
 export function useRealtime(onMessage) {
     const sourceRef = useRef(null)

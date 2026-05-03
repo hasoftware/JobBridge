@@ -13,7 +13,7 @@ const upload = {
 }
 
 const cors = {
-    origin: (process.env.CORS_ORIGIN || "http://localhost:5173").split(","),
+    origin: (process.env.CORS_ORIGIN || "http://localhost:5000").split(","),
     credentials: true,
 }
 
