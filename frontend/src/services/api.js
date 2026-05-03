@@ -166,6 +166,20 @@ export const jobs = {
   unsave: (id) => apiFetch(`/jobs/${id}/save`, { method: "DELETE" }),
 }
 
+export const companies = {
+  list: (params = {}) => {
+    const search = new URLSearchParams(params).toString()
+    return apiFetch(`/companies${search ? `?${search}` : ''}`)
+  },
+  featured: (limit = 8) => apiFetch(`/companies/featured?limit=${limit}`),
+  filters: () => apiFetch("/companies/filters"),
+  get: (id) => apiFetch(`/companies/${id}`),
+  jobs: (id, params = {}) => {
+    const search = new URLSearchParams(params).toString()
+    return apiFetch(`/companies/${id}/jobs${search ? `?${search}` : ''}`)
+  },
+}
+
 export const coverLetters = {
   list: () => apiFetch("/cover-letters"),
   get: (id) => apiFetch(`/cover-letters/${id}`),

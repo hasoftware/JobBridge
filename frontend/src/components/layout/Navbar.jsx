@@ -215,7 +215,7 @@ export default function Navbar() {
 
                 <div className={`navbar-menu ${mobileOpen ? 'open' : ''}`}>
                     <NavLink to="/jobs" onClick={() => setMobileOpen(false)}>Việc làm</NavLink>
-                    <a href="/#companies" onClick={() => setMobileOpen(false)}>Công ty</a>
+                    <NavLink to="/companies" onClick={() => setMobileOpen(false)}>Công ty</NavLink>
                     <a href="/#tools" onClick={() => setMobileOpen(false)}>Công cụ</a>
                     <NavLink to="/cv-templates" onClick={() => setMobileOpen(false)}>Tạo CV</NavLink>
                 </div>

@@ -13,6 +13,7 @@ const templatesRoutes = require("./routes/templates")
 const cvsRoutes = require("./routes/cvs")
 const applicationsRoutes = require("./routes/applications")
 const coverLettersRoutes = require("./routes/coverLetters")
+const companiesRoutes = require("./routes/companies")
 
 const app = express()
 
@@ -38,6 +39,7 @@ app.use("/api/v1/templates/preview", templatesRoutes)
 app.use("/api/v1/cvs", cvsRoutes)
 app.use("/api/v1/applications", applicationsRoutes)
 app.use("/api/v1/cover-letters", coverLettersRoutes)
+app.use("/api/v1/companies", companiesRoutes)
 
 app.use("/api", notFoundHandler)
 app.use(errorHandler)

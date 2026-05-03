@@ -1,101 +1,149 @@
-import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import JobCard from '../components/job/JobCard'
+import { companies as companiesApi } from '../services/api'
 import './CompanyPage.css'
 
-const MOCK_COMPANY = {
-  name: 'Tech Corp',
-  description: 'Công ty công nghệ hàng đầu Việt Nam, chuyên phát triển các sản phẩm fintech và e-commerce phục vụ thị trường Đông Nam Á.',
-  industry: 'Công nghệ thông tin',
-  company_size: '201-500',
-  founded_year: 2015,
-  website: 'https://techcorp.example.com',
-  location: 'Hà Nội',
-  logo_url: '/images/company.png',
-  banner_url: '/images/company-banner.png',
-}
-
-const MOCK_JOBS = [
-  { id: 1, title: 'Frontend Developer', company_name: 'Tech Corp', location: 'Hà Nội', salary_min: 1500, salary_max: 2500, currency: 'USD', job_type: 'Full-time' },
-  { id: 2, title: 'Backend Engineer', company_name: 'Tech Corp', location: 'Hà Nội', salary_min: 2000, salary_max: 3500, currency: 'USD', job_type: 'Full-time' },
-  { id: 3, title: 'DevOps Engineer', company_name: 'Tech Corp', location: 'Hà Nội', salary_min: 2500, salary_max: 4000, currency: 'USD', job_type: 'Full-time' },
+const TABS = [
+    { id: 'about', label: 'Giới thiệu' },
+    { id: 'jobs', label: 'Việc làm đang tuyển' },
 ]
 
 export default function CompanyPage() {
-  const { name } = useParams()
-  const [company, setCompany] = useState(null)
-  const [jobs, setJobs] = useState([])
+    const { id } = useParams()
+    const [company, setCompany] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+    const [activeTab, setActiveTab] = useState('about')
+    const [jobs, setJobs] = useState([])
+    const [jobsTotal, setJobsTotal] = useState(0)
+    const [jobsLoading, setJobsLoading] = useState(false)
 
-  useEffect(() => {
-    setCompany(MOCK_COMPANY)
-    setJobs(MOCK_JOBS)
-  }, [name])
+    useEffect(() => {
+        let cancelled = false
+        setLoading(true)
+        companiesApi.get(id)
+            .then((c) => { if (!cancelled) setCompany(c) })
+            .catch((err) => { if (!cancelled) setError(err.message || 'Không tìm thấy công ty') })
+            .finally(() => { if (!cancelled) setLoading(false) })
+        return () => { cancelled = true }
+    }, [id])
 
-  if (!company) return <div className="container">Đang tải...</div>
+    useEffect(() => {
+        if (activeTab !== 'jobs' || !id) return
+        let cancelled = false
+        setJobsLoading(true)
+        companiesApi.jobs(id, { limit: 24 })
+            .then((data) => {
+                if (cancelled) return
+                setJobs(data.jobs || [])
+                setJobsTotal(data.total || 0)
+            })
+            .catch(() => { if (!cancelled) setJobs([]) })
+            .finally(() => { if (!cancelled) setJobsLoading(false) })
+        return () => { cancelled = true }
+    }, [activeTab, id])
 
-  return (
-    <div className="company-page">
-      <div
-        className="company-page-banner"
-        style={{ backgroundImage: `url(${company.banner_url})` }}
-      />
-
-      <div className="container">
-        <div className="company-page-header">
-          <img
-            src={company.logo_url || '/images/company.png'}
-            alt={company.name}
-            className="company-page-logo"
-            onError={(e) => { e.target.src = '/images/company.png' }}
-          />
-          <div className="company-page-info">
-            <h1 className="company-page-name">{company.name}</h1>
-            <div className="company-page-meta">
-              <span>{company.industry}</span>
-              <span>{company.company_size} nhân viên</span>
-              <span>{company.location}</span>
+    if (loading) return <div className="cp-loading">Đang tải thông tin công ty...</div>
+    if (error || !company) {
+        return (
+            <div className="cp-loading">
+                <p>{error || 'Không tìm thấy công ty'}</p>
+                <Link to="/companies" className="btn btn-primary">Quay lại danh sách</Link>
             </div>
-          </div>
-        </div>
+        )
+    }
 
-        <div className="company-page-grid">
-          <div className="company-page-main">
-            <section className="company-section">
-              <h2>Giới thiệu</h2>
-              <p>{company.description}</p>
-            </section>
+    const initial = (company.name || '?').charAt(0).toUpperCase()
 
-            <section className="company-section">
-              <h2>Việc làm đang tuyển ({jobs.length})</h2>
-              <div className="company-jobs-grid">
-                {jobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
-                ))}
-              </div>
-            </section>
-          </div>
+    return (
+        <div className="cp-page">
+            <div className="container">
+                <nav className="cp-breadcrumb">
+                    <Link to="/">Trang chủ</Link>
+                    <span>›</span>
+                    <Link to="/companies">Công ty</Link>
+                    <span>›</span>
+                    <span className="cp-breadcrumb-current">{company.name}</span>
+                </nav>
 
-          <aside className="company-page-side">
-            <div className="company-side-card">
-              <h3>Thông tin</h3>
-              <ul>
-                <li><strong>Năm thành lập:</strong> {company.founded_year}</li>
-                <li><strong>Quy mô:</strong> {company.company_size} người</li>
-                <li><strong>Lĩnh vực:</strong> {company.industry}</li>
-                <li><strong>Địa điểm:</strong> {company.location}</li>
-                {company.website && (
-                  <li>
-                    <strong>Website:</strong>{' '}
-                    <a href={company.website} target="_blank" rel="noreferrer">
-                      {company.website}
-                    </a>
-                  </li>
+                <header className="cp-header">
+                    <div className="cp-header-logo">
+                        {company.logo_url
+                            ? <img src={company.logo_url} alt={company.name} />
+                            : <span>{initial}</span>
+                        }
+                    </div>
+                    <div className="cp-header-body">
+                        <h1 className="cp-name">{company.name}</h1>
+                        {company.description && <p className="cp-tagline">{company.description.split('\n')[0]}</p>}
+                        <div className="cp-meta">
+                            {company.industry && <span><strong>Ngành:</strong> {company.industry}</span>}
+                            {company.company_size && <span><strong>Quy mô:</strong> {company.company_size} người</span>}
+                            {company.location && <span><strong>Địa điểm:</strong> {company.location}</span>}
+                            {company.founded_year && <span><strong>Thành lập:</strong> {company.founded_year}</span>}
+                            {company.website && (
+                                <span>
+                                    <strong>Website:</strong>{' '}
+                                    <a href={company.website.startsWith('http') ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer">
+                                        {company.website.replace(/^https?:\/\//, '')}
+                                    </a>
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="cp-header-stats">
+                        <div className="cp-stat">
+                            <div className="cp-stat-value">{company.active_jobs || 0}</div>
+                            <div className="cp-stat-label">việc làm đang tuyển</div>
+                        </div>
+                    </div>
+                </header>
+
+                <div className="cp-tabs">
+                    {TABS.map((tab) => (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            className={`cp-tab ${activeTab === tab.id ? 'active' : ''}`}
+                            onClick={() => setActiveTab(tab.id)}
+                        >
+                            {tab.label}
+                            {tab.id === 'jobs' && company.active_jobs > 0 && (
+                                <span className="cp-tab-badge">{company.active_jobs}</span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {activeTab === 'about' && (
+                    <section className="cp-content">
+                        <h2>Giới thiệu công ty</h2>
+                        {company.description ? (
+                            <div className="cp-description">{company.description}</div>
+                        ) : (
+                            <p className="cp-empty">Chưa có thông tin giới thiệu.</p>
+                        )}
+                    </section>
                 )}
-              </ul>
+
+                {activeTab === 'jobs' && (
+                    <section className="cp-content">
+                        <h2>Việc làm đang tuyển ({jobsTotal})</h2>
+                        {jobsLoading ? (
+                            <div className="cp-jobs-loading">Đang tải...</div>
+                        ) : jobs.length === 0 ? (
+                            <p className="cp-empty">Hiện chưa có vị trí tuyển dụng nào.</p>
+                        ) : (
+                            <div className="cp-jobs-grid">
+                                {jobs.map((job) => (
+                                    <JobCard key={job.id} job={{ ...job, company_name: company.name, company_logo: company.logo_url }} />
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
             </div>
-          </aside>
         </div>
-      </div>
-    </div>
-  )
+    )
 }

@@ -1,134 +1,238 @@
-.company-page {
-  min-height: calc(100vh - 64px);
-  background: var(--jb-surface-0);
+.cp-page {
+    background: #f8fafc;
+    min-height: calc(100vh - 64px);
+    padding: 24px 0 60px;
 }
 
-.company-page-banner {
-  height: 200px;
-  background-size: cover;
-  background-position: center;
-  background-color: var(--jb-primary-light);
-}
-
-.company-page-header {
-  display: flex;
-  gap: 20px;
-  align-items: flex-end;
-  margin-top: -40px;
-  margin-bottom: 24px;
-}
-
-.company-page-logo {
-  width: 120px;
-  height: 120px;
-  border-radius: var(--jb-radius-lg);
-  border: 4px solid var(--jb-surface-1);
-  background: var(--jb-surface-1);
-  object-fit: cover;
-}
-
-.company-page-info {
-  padding-bottom: 8px;
-}
-
-.company-page-name {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--jb-text-primary);
-  margin: 0 0 6px;
-}
-
-.company-page-meta {
-  display: flex;
-  gap: 16px;
-  font-size: 14px;
-  color: var(--jb-text-secondary);
-}
-
-.company-page-grid {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 24px;
-  padding-bottom: 32px;
-}
-
-.company-page-main {
-  min-width: 0;
-}
-
-.company-section {
-  background: var(--jb-surface-1);
-  border: 1px solid var(--jb-border);
-  border-radius: var(--jb-radius-lg);
-  padding: 24px;
-  margin-bottom: 16px;
-}
-
-.company-section h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--jb-text-primary);
-  margin: 0 0 12px;
-}
-
-.company-section p {
-  color: var(--jb-text-secondary);
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.company-jobs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.company-side-card {
-  background: var(--jb-surface-1);
-  border: 1px solid var(--jb-border);
-  border-radius: var(--jb-radius-lg);
-  padding: 20px;
-}
-
-.company-side-card h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 12px;
-  color: var(--jb-text-primary);
-}
-
-.company-side-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.company-side-card li {
-  font-size: 13px;
-  color: var(--jb-text-secondary);
-  margin-bottom: 8px;
-  line-height: 1.6;
-}
-
-.company-side-card strong {
-  color: var(--jb-text-primary);
-  font-weight: 500;
-}
-
-@media (max-width: 1024px) {
-  .company-page-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .company-jobs-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .company-page-header {
-    flex-direction: column;
-    align-items: center;
+.cp-loading {
+    padding: 80px;
     text-align: center;
-  }
+    color: #64748b;
+    font-size: 14px;
+}
+
+.cp-loading .btn {
+    margin-top: 16px;
+}
+
+.cp-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 18px;
+}
+
+.cp-breadcrumb a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.cp-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.cp-breadcrumb-current {
+    color: #0f172a;
+    font-weight: 500;
+}
+
+.cp-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 24px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    margin-bottom: 18px;
+}
+
+.cp-header-logo {
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.cp-header-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cp-header-body {
+    min-width: 0;
+}
+
+.cp-name {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+}
+
+.cp-tagline {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.cp-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.cp-meta strong {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.cp-meta a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.cp-meta a:hover {
+    text-decoration: underline;
+}
+
+.cp-header-stats {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cp-stat {
+    text-align: center;
+    padding: 12px 18px;
+    background: #ecfdf5;
+    border-radius: 10px;
+    border: 1px solid #a7f3d0;
+}
+
+.cp-stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #047857;
+    line-height: 1;
+}
+
+.cp-stat-label {
+    font-size: 11.5px;
+    color: #047857;
+    margin-top: 2px;
+    max-width: 120px;
+}
+
+.cp-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 22px;
+}
+
+.cp-tab {
+    padding: 12px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cp-tab:hover {
+    color: #0f172a;
+}
+
+.cp-tab.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+    font-weight: 600;
+}
+
+.cp-tab-badge {
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.cp-content {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 22px 24px;
+}
+
+.cp-content h2 {
+    margin: 0 0 14px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.cp-description {
+    color: #1e293b;
+    font-size: 13.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.cp-empty {
+    color: #94a3b8;
+    font-size: 13px;
+    text-align: center;
+    padding: 24px;
+}
+
+.cp-jobs-loading {
+    text-align: center;
+    color: #64748b;
+    padding: 30px;
+    font-size: 13px;
+}
+
+.cp-jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+@media (max-width: 720px) {
+    .cp-header {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .cp-header-logo {
+        margin: 0 auto;
+    }
+    .cp-meta {
+        justify-content: center;
+    }
+    .cp-header-stats {
+        justify-content: center;
+    }
 }
