@@ -151,7 +151,7 @@ const SECTIONS = [
                 <p>Mọi thắc mắc liên quan đến Chính sách bảo mật, vui lòng liên hệ:</p>
                 <ul>
                     <li><strong>Email:</strong> <a href="mailto:hotro@jobbridge.vn">hotro@jobbridge.vn</a></li>
-                    <li><strong>Hotline:</strong> (024) 6680 5588</li>
+                    <li><strong>Hotline:</strong> (024) 88888888</li>
                     <li><strong>Địa chỉ:</strong> Tầng 5, Tòa nhà JobBridge, Cầu Giấy, Hà Nội</li>
                 </ul>
             </>

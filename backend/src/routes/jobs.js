@@ -6,22 +6,26 @@ const { requireRole } = auth
 const router = express.Router()
 
 router.get("/", async (req, res, next) => {
-    const { q, location, type, page = 1, limit = 20 } = req.query
+    const { q, location, type, industry, page = 1, limit = 20 } = req.query
     const offset = (Number(page) - 1) * Number(limit)
     const conditions = []
     const values = []
 
     if (q) {
         values.push(`%${q}%`)
-        conditions.push(`title ILIKE $${values.length}`)
+        conditions.push(`j.title ILIKE $${values.length}`)
     }
     if (location) {
         values.push(`%${location}%`)
-        conditions.push(`location ILIKE $${values.length}`)
+        conditions.push(`j.location ILIKE $${values.length}`)
     }
     if (type) {
         values.push(type)
-        conditions.push(`job_type = $${values.length}`)
+        conditions.push(`j.job_type = $${values.length}`)
+    }
+    if (industry) {
+        values.push(industry)
+        conditions.push(`c.industry = $${values.length}`)
     }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""
@@ -30,7 +34,8 @@ router.get("/", async (req, res, next) => {
         values.push(Number(limit), offset)
         const { rows } = await pool.query(
             `SELECT j.id, j.title, j.location, j.salary_min, j.salary_max, j.currency,
-                    j.job_type, j.publishing_date, c.name AS company_name, c.logo_url AS company_logo
+                    j.job_type, j.publishing_date, j.created_by,
+                    c.name AS company_name, c.logo_url AS company_logo, c.industry
              FROM jobs j
              LEFT JOIN companies c ON c.id = j.company_id
              ${where}

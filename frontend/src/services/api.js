@@ -2,6 +2,13 @@ const BASE = (import.meta.env?.VITE_API_URL || "http://localhost:5001") + "/api/
 
 export const API_BASE = BASE
 
+export function fileUrl(value) {
+  if (!value) return ''
+  if (/^https?:\/\//i.test(value)) return value
+  const base = (import.meta.env?.VITE_API_URL || "http://localhost:5001").replace(/\/$/, '')
+  return value.startsWith('/') ? `${base}${value}` : `${base}/${value}`
+}
+
 export const token = {
   getAccess: () => localStorage.getItem("access_token"),
   getRefresh: () => localStorage.getItem("refresh_token"),

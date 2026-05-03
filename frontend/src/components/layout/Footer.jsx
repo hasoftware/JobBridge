@@ -10,7 +10,7 @@ export default function Footer() {
             <Link to="/" className="navbar-logo">JobBridge</Link>
             <p>Nền tảng kết nối việc làm hàng đầu Việt Nam, giúp ứng viên tìm được công việc mơ ước và doanh nghiệp tìm được nhân tài phù hợp.</p>
             <div className="footer-contact">
-              <p>(024) 6680 5588</p>
+              <p>(024) 88888888</p>
               <p>hotro@jobbridge.vn</p>
             </div>
           </div>
