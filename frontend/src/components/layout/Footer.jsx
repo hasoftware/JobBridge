@@ -50,8 +50,8 @@ export default function Footer() {
         <div className="footer-bottom">
           <div>&copy; 2024 JobBridge Vietnam. All rights reserved.</div>
           <div className="footer-bottom-links">
-            <a href="#">Chính sách bảo mật</a>
-            <a href="#">Điều khoản dịch vụ</a>
+            <Link to="/privacy">Chính sách bảo mật</Link>
+            <Link to="/terms">Điều khoản sử dụng</Link>
           </div>
         </div>
       </div>
