@@ -45,7 +45,7 @@ router.get("/", async (req, res, next) => {
         )
 
         const countResult = await pool.query(
-            `SELECT COUNT(*) FROM jobs ${where}`,
+            `SELECT COUNT(*) FROM jobs j LEFT JOIN companies c ON c.id = j.company_id ${where}`,
             values.slice(0, values.length - 2),
         )
 
