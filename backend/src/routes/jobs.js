@@ -35,7 +35,7 @@ router.get("/", async (req, res, next) => {
         const { rows } = await pool.query(
             `SELECT j.id, j.title, j.location, j.salary_min, j.salary_max, j.currency,
                     j.job_type, j.publishing_date, j.created_by,
-                    c.name AS company_name, c.logo_url AS company_logo, c.industry
+                    c.id AS company_id, c.name AS company_name, c.logo_url AS company_logo, c.industry
              FROM jobs j
              LEFT JOIN companies c ON c.id = j.company_id
              ${where}

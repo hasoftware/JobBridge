@@ -65,6 +65,20 @@
   color: var(--jb-text-secondary);
 }
 
+.job-card-company-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.job-card-company-btn:hover {
+  color: var(--jb-primary);
+  text-decoration: underline;
+}
+
 .job-card-meta {
   display: flex;
   gap: 12px;

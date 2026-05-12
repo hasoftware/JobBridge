@@ -12,7 +12,7 @@ const formatSalary = (job) => {
   return `${cur} đến ${fmt(job.salary_max)}`
 }
 
-export default function JobCard({ job }) {
+export default function JobCard({ job, onCompanyClick }) {
   return (
     <Link to={`/jobs/${job.id}`} className="job-card">
       <div className="job-card-header">
@@ -27,7 +27,16 @@ export default function JobCard({ job }) {
         </div>
         <div className="job-card-info">
           <h3 className="job-card-title">{job.title}</h3>
-          <div className="job-card-company">{job.company_name}</div>
+          {onCompanyClick && job.company_id ? (
+            <button
+              className="job-card-company job-card-company-btn"
+              onClick={(e) => { e.preventDefault(); onCompanyClick(job.company_id) }}
+            >
+              {job.company_name}
+            </button>
+          ) : (
+            <div className="job-card-company">{job.company_name}</div>
+          )}
         </div>
       </div>
 
