@@ -178,6 +178,8 @@ export const jobs = {
 }
 
 export const companies = {
+  getMine: () => apiFetch("/companies/mine"),
+  updateMine: (payload) => apiFetch("/companies/mine", { method: "PUT", body: JSON.stringify(payload) }),
   list: (params = {}) => {
     const search = new URLSearchParams(params).toString()
     return apiFetch(`/companies${search ? `?${search}` : ''}`)

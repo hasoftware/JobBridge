@@ -1,7 +1,51 @@
 const express = require("express")
 const pool = require("../../config/db")
+const auth = require("../middleware/auth")
+const { requireRole } = auth
 
 const router = express.Router()
+
+router.get("/mine", auth, requireRole("recruiter", "admin"), async (req, res, next) => {
+    try {
+        const { rows } = await pool.query(
+            "SELECT * FROM companies WHERE user_id = $1",
+            [req.user.id],
+        )
+        res.json(rows[0] || null)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.put("/mine", auth, requireRole("recruiter", "admin"), async (req, res, next) => {
+    const { name, description, website, logo_url, location, industry, company_size } = req.body
+    if (!name || !name.trim()) return res.status(400).json({ message: "Tên công ty là bắt buộc" })
+
+    const size = company_size && VALID_SIZES.includes(company_size) ? company_size : null
+
+    try {
+        const existing = await pool.query("SELECT id FROM companies WHERE user_id = $1", [req.user.id])
+        let result
+        if (existing.rows.length > 0) {
+            result = await pool.query(
+                `UPDATE companies SET name=$1, description=$2, website=$3, logo_url=$4,
+                 location=$5, industry=$6, company_size=$7 WHERE user_id=$8 RETURNING *`,
+                [name.trim(), description || null, website || null, logo_url || null,
+                 location || null, industry || null, size, req.user.id],
+            )
+        } else {
+            result = await pool.query(
+                `INSERT INTO companies (user_id, name, description, website, logo_url, location, industry, company_size)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+                [req.user.id, name.trim(), description || null, website || null,
+                 logo_url || null, location || null, industry || null, size],
+            )
+        }
+        res.json(result.rows[0])
+    } catch (err) {
+        next(err)
+    }
+})
 
 const VALID_SIZES = ["1-10", "11-50", "51-200", "201-500", "500+"]
 
