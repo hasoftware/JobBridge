@@ -215,6 +215,14 @@ export const applications = {
   }),
 }
 
+export const search = {
+  candidates: (params = {}) => {
+    const q = new URLSearchParams(params).toString()
+    return apiFetch(`/search/candidates${q ? `?${q}` : ''}`)
+  },
+  candidateDetail: (id) => apiFetch(`/search/candidates/${id}`),
+}
+
 export const admin = {
   getEmailSettings: () => apiFetch("/admin/settings/email"),
   saveEmailSettings: (config) => apiFetch("/admin/settings/email", {
