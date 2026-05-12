@@ -56,12 +56,18 @@ export default function JobForm() {
       addToast('Lương tối thiểu không được lớn hơn lương tối đa', 'error'); return
     }
     setSaving(true)
+    const payload = {
+      ...form,
+      salary_min: form.salary_min === '' ? null : form.salary_min,
+      salary_max: form.salary_max === '' ? null : form.salary_max,
+      application_deadline: form.application_deadline === '' ? null : form.application_deadline,
+    }
     try {
       if (isEdit) {
-        await jobsApi.update(id, form)
+        await jobsApi.update(id, payload)
         addToast('Đã cập nhật tin tuyển dụng', 'success')
       } else {
-        await jobsApi.create(form)
+        await jobsApi.create(payload)
         addToast('Đã đăng tin tuyển dụng', 'success')
       }
       navigate('/dashboard/jobs')
