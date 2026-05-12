@@ -60,6 +60,22 @@ router.get("/", async (req, res, next) => {
     }
 })
 
+router.get("/mine", auth, requireRole("recruiter", "admin"), async (req, res, next) => {
+    try {
+        const { rows } = await pool.query(
+            `SELECT j.*, c.name AS company_name, c.logo_url AS company_logo
+             FROM jobs j
+             LEFT JOIN companies c ON c.id = j.company_id
+             WHERE j.created_by = $1
+             ORDER BY j.created_at DESC`,
+            [req.user.id],
+        )
+        res.json(rows)
+    } catch (err) {
+        next(err)
+    }
+})
+
 router.get("/saved", auth, async (req, res, next) => {
     const page = Math.max(1, Number(req.query.page) || 1)
     const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20))

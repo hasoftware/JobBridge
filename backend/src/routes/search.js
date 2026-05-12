@@ -1,8 +1,101 @@
 const express = require("express")
 const pool = require("../../config/db")
 const { industries } = require("../../config")
+const auth = require("../middleware/auth")
+const { requireRole } = auth
 
 const router = express.Router()
+
+router.get("/candidates", auth, requireRole("recruiter", "admin"), async (req, res, next) => {
+    const q = String(req.query.q || "").trim()
+    const gender = String(req.query.gender || "").trim()
+    const location = String(req.query.location || "").trim()
+    const skill = String(req.query.skill || "").trim()
+    const limit = Math.min(40, Math.max(1, Number(req.query.limit) || 20))
+
+    const where = ["u.role = 'job_seeker'"]
+    const values = []
+
+    if (q) {
+        values.push(`%${q}%`)
+        where.push(`(u.full_name ILIKE $${values.length} OR u.email ILIKE $${values.length} OR u.bio ILIKE $${values.length})`)
+    }
+    if (gender) {
+        values.push(gender)
+        where.push(`u.gender = $${values.length}`)
+    }
+    if (location) {
+        values.push(`%${location}%`)
+        where.push(`(u.address->>'province_name' ILIKE $${values.length} OR u.address->>'district_name' ILIKE $${values.length})`)
+    }
+    if (skill) {
+        values.push(`%${skill.toLowerCase()}%`)
+        where.push(`EXISTS (
+            SELECT 1 FROM cvs cv, jsonb_array_elements(cv.data->'skills') s
+            WHERE cv.user_id = u.id AND lower(s->>'name') LIKE $${values.length}
+        )`)
+    }
+
+    try {
+        values.push(limit)
+        const { rows } = await pool.query(
+            `SELECT u.id, u.public_id, u.full_name, u.email, u.gender,
+                    u.address->>'province_name' AS location, u.bio,
+                    COALESCE(
+                        (SELECT jsonb_agg(DISTINCT s->>'name')
+                         FROM cvs cv, jsonb_array_elements(cv.data->'skills') s
+                         WHERE cv.user_id = u.id AND s->>'name' <> ''),
+                        '[]'::jsonb
+                    ) AS skills
+             FROM users u
+             WHERE ${where.join(" AND ")}
+             ORDER BY u.created_at DESC
+             LIMIT $${values.length}`,
+            values,
+        )
+        res.json(rows)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.get("/candidates/:id", auth, requireRole("recruiter", "admin"), async (req, res, next) => {
+    try {
+        const userRes = await pool.query(
+            `SELECT id, public_id, full_name, email, phone, date_of_birth, gender, address, bio
+             FROM users WHERE id = $1 AND role = 'job_seeker'`,
+            [req.params.id],
+        )
+        if (userRes.rows.length === 0) return res.status(404).json({ message: "Không tìm thấy ứng viên" })
+
+        const cvsRes = await pool.query(
+            `SELECT id, title, data->'skills' AS skills, created_at
+             FROM cvs WHERE user_id = $1 ORDER BY updated_at DESC`,
+            [req.params.id],
+        )
+
+        const appsRes = await pool.query(
+            `SELECT a.id, a.status, a.created_at,
+                    j.title AS job_title,
+                    c.name AS company_name
+             FROM applications a
+             JOIN jobs j ON j.id = a.job_id
+             LEFT JOIN companies c ON c.id = j.company_id
+             WHERE a.user_id = $1
+             ORDER BY a.created_at DESC
+             LIMIT 20`,
+            [req.params.id],
+        )
+
+        res.json({
+            ...userRes.rows[0],
+            cvs: cvsRes.rows,
+            applications: appsRes.rows,
+        })
+    } catch (err) {
+        next(err)
+    }
+})
 
 router.get("/", async (req, res, next) => {
     try {

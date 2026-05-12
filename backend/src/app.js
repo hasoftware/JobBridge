@@ -14,6 +14,7 @@ const cvsRoutes = require("./routes/cvs")
 const applicationsRoutes = require("./routes/applications")
 const coverLettersRoutes = require("./routes/coverLetters")
 const companiesRoutes = require("./routes/companies")
+const searchRoutes = require("./routes/search")
 
 const app = express()
 
@@ -40,6 +41,7 @@ app.use("/api/v1/cvs", cvsRoutes)
 app.use("/api/v1/applications", applicationsRoutes)
 app.use("/api/v1/cover-letters", coverLettersRoutes)
 app.use("/api/v1/companies", companiesRoutes)
+app.use("/api/v1/search", searchRoutes)
 
 app.use("/api", notFoundHandler)
 app.use(errorHandler)
