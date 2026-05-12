@@ -1,0 +1,120 @@
+.ja-page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ja-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.ja-header h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--jb-text-primary);
+}
+
+.ja-header p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--jb-text-tertiary);
+}
+
+.ja-loading {
+    padding: 60px;
+    text-align: center;
+    color: var(--jb-text-tertiary);
+    font-size: 14px;
+}
+
+.ja-empty {
+    padding: 56px 24px;
+    text-align: center;
+    background: var(--jb-surface-1);
+    border: 1px dashed var(--jb-border-strong);
+    border-radius: var(--jb-radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--jb-text-tertiary);
+}
+
+.ja-empty h3 {
+    margin: 8px 0 0;
+    font-size: 16px;
+    color: var(--jb-text-primary);
+}
+
+.ja-empty p {
+    margin: 0;
+    font-size: 13px;
+}
+
+.ja-table-wrap {
+    background: var(--jb-surface-1);
+    border: 1px solid var(--jb-border);
+    border-radius: var(--jb-radius-md);
+    overflow: hidden;
+}
+
+.ja-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.ja-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--jb-text-tertiary);
+    background: var(--jb-surface-2);
+    border-bottom: 1px solid var(--jb-border);
+}
+
+.ja-table td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--jb-border);
+    color: var(--jb-text-secondary);
+    vertical-align: middle;
+}
+
+.ja-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ja-table tbody tr:hover {
+    background: var(--jb-surface-2);
+}
+
+.ja-name {
+    font-weight: 600;
+    color: var(--jb-text-primary);
+}
+
+.ja-status-select {
+    padding: 6px 10px;
+    border: 1px solid var(--jb-border);
+    border-radius: var(--jb-radius-sm);
+    font-size: 13px;
+    color: var(--jb-text-secondary);
+    background: var(--jb-surface-1);
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.ja-status-select:focus {
+    outline: none;
+    border-color: var(--jb-primary);
+}

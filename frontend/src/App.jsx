@@ -34,6 +34,9 @@ const NotificationSettings = lazy(() => import("./pages/dashboard/NotificationSe
 const SavedJobs = lazy(() => import("./pages/dashboard/SavedJobs"))
 const MyCVs = lazy(() => import("./pages/dashboard/MyCVs"))
 const MyApplications = lazy(() => import("./pages/dashboard/MyApplications"))
+const RecruiterJobs = lazy(() => import("./pages/dashboard/RecruiterJobs"))
+const JobForm = lazy(() => import("./pages/dashboard/JobForm"))
+const JobApplicants = lazy(() => import("./pages/dashboard/JobApplicants"))
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"))
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
@@ -110,6 +113,10 @@ export default function App() {
                         <Route path="cvs" element={<MyCVs />} />
                         <Route path="applied-jobs" element={<MyApplications />} />
                         <Route path="cover-letters" element={<MyCoverLetters />} />
+                        <Route path="jobs" element={<RecruiterJobs />} />
+                        <Route path="jobs/create" element={<JobForm />} />
+                        <Route path="jobs/:id/edit" element={<JobForm />} />
+                        <Route path="jobs/:id/applicants" element={<JobApplicants />} />
                     </Route>
                     <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />

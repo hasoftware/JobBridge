@@ -5,6 +5,7 @@ const auth = require("../middleware/auth")
 const router = express.Router()
 
 const VALID_STATUSES = ["pending", "submitted", "reviewed", "interview", "accepted", "rejected", "withdrawn"]
+const RECRUITER_STATUSES = ["submitted", "under_review", "shortlisted", "interview_scheduled", "rejected"]
 
 router.get("/mine", auth, async (req, res, next) => {
     const page = Math.max(1, Number(req.query.page) || 1)
@@ -54,6 +55,58 @@ router.get("/mine", auth, async (req, res, next) => {
             page,
             limit,
         })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.get("/job/:jobId", auth, async (req, res, next) => {
+    try {
+        const job = await pool.query("SELECT created_by FROM jobs WHERE id=$1", [req.params.jobId])
+        if (job.rows.length === 0) return res.status(404).json({ message: "Job not found" })
+        if (job.rows[0].created_by !== req.user.id) {
+            return res.status(403).json({ message: "Forbidden" })
+        }
+
+        const { rows } = await pool.query(
+            `SELECT a.id, a.status, a.cv_url, a.created_at, a.user_id,
+                    u.email, u.full_name AS candidate_name
+             FROM applications a
+             JOIN users u ON u.id = a.user_id
+             WHERE a.job_id = $1
+             ORDER BY a.created_at DESC`,
+            [req.params.jobId],
+        )
+        res.json(rows)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.put("/:id/status", auth, async (req, res, next) => {
+    const { status } = req.body
+    if (!status || !RECRUITER_STATUSES.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" })
+    }
+
+    try {
+        const check = await pool.query(
+            `SELECT a.id, j.created_by
+             FROM applications a
+             JOIN jobs j ON j.id = a.job_id
+             WHERE a.id = $1`,
+            [req.params.id],
+        )
+        if (check.rows.length === 0) return res.status(404).json({ message: "Application not found" })
+        if (check.rows[0].created_by !== req.user.id) {
+            return res.status(403).json({ message: "Forbidden" })
+        }
+
+        await pool.query(
+            "UPDATE applications SET status=$1, updated_at=NOW() WHERE id=$2",
+            [status, req.params.id],
+        )
+        res.json({ success: true })
     } catch (err) {
         next(err)
     }

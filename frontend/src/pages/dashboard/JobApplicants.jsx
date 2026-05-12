@@ -1,73 +1,96 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-
-const MOCK_APPLICANTS = [
-  { id: 1, name: 'Nguyễn Văn A', email: 'a@test.com', skills: ['React', 'JavaScript', 'CSS'], score: 0.92, applied_at: '2026-04-15', cv_url: '/cv/1.pdf' },
-  { id: 2, name: 'Trần Thị B', email: 'b@test.com', skills: ['React', 'TypeScript'], score: 0.85, applied_at: '2026-04-14', cv_url: '/cv/2.pdf' },
-  { id: 3, name: 'Lê Văn C', email: 'c@test.com', skills: ['Vue', 'JavaScript'], score: 0.62, applied_at: '2026-04-13', cv_url: '/cv/3.pdf' },
-  { id: 4, name: 'Phạm Thị D', email: 'd@test.com', skills: ['Angular', 'CSS'], score: 0.48, applied_at: '2026-04-12', cv_url: '/cv/4.pdf' },
-]
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
+import Icon from '../../components/common/Icon'
+import { applications as applicationsApi } from '../../services/api'
+import { useToast } from '../../hooks/useToast'
+import { STATUS_OPTIONS } from '../../services/constants'
+import './JobApplicants.css'
 
 export default function JobApplicants() {
-  const { id } = useParams()
-  const [applicants, setApplicants] = useState([])
-  const [sortBy, setSortBy] = useState('score')
+  const { id: jobId } = useParams()
+  const { state } = useLocation()
+  const navigate = useNavigate()
+  const { addToast } = useToast()
+
+  const jobTitle = state?.jobTitle || 'Ứng viên'
+  const [list, setList] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setApplicants(MOCK_APPLICANTS)
-  }, [id])
+    applicationsApi.getForJob(jobId)
+      .then(setList)
+      .catch(() => addToast('Không thể tải danh sách ứng viên', 'error'))
+      .finally(() => setLoading(false))
+  }, [jobId])
 
-  const sorted = [...applicants].sort((a, b) => {
-    if (sortBy === 'score') return b.score - a.score
-    if (sortBy === 'date') return new Date(b.applied_at) - new Date(a.applied_at)
-    return 0
-  })
-
-  const scoreColor = (score) => {
-    if (score >= 0.8) return '#10b981'
-    if (score >= 0.6) return '#f59e0b'
-    return '#ef4444'
+  async function handleStatusChange(appId, status) {
+    try {
+      await applicationsApi.updateStatus(appId, status)
+      setList((prev) => prev.map((a) => a.id === appId ? { ...a, status } : a))
+      addToast('Đã cập nhật trạng thái', 'success')
+    } catch (err) {
+      addToast(err.message || 'Cập nhật thất bại', 'error')
+    }
   }
 
+  if (loading) return <div className="ja-loading">Đang tải...</div>
+
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-page-header">
-        <h1>Ứng viên ({applicants.length})</h1>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="score">Sắp xếp theo điểm phù hợp</option>
-          <option value="date">Mới nhất</option>
-        </select>
+    <div className="ja-page">
+      <div className="ja-header">
+        <div>
+          <h1>{jobTitle}</h1>
+          <p>{list.length} ứng viên</p>
+        </div>
+        <button className="btn btn-outline btn-sm" onClick={() => navigate('/dashboard/jobs')}>
+          <Icon name="arrow-left" size="sm" />Quay lại
+        </button>
       </div>
 
-      <div className="applicants-list">
-        {sorted.map((app) => (
-          <div key={app.id} className="applicant-card">
-            <div className="applicant-info">
-              <div className="applicant-name">{app.name}</div>
-              <div className="applicant-email">{app.email}</div>
-              <div className="applicant-skills">
-                {app.skills.map((s) => (
-                  <span key={s} className="applicant-skill">{s}</span>
-                ))}
-              </div>
-              <div className="applicant-date">Ứng tuyển: {app.applied_at}</div>
-            </div>
-
-            <div className="applicant-score" style={{ borderColor: scoreColor(app.score) }}>
-              <div className="applicant-score-value" style={{ color: scoreColor(app.score) }}>
-                {Math.round(app.score * 100)}%
-              </div>
-              <div className="applicant-score-label">phù hợp</div>
-            </div>
-
-            <div className="applicant-actions">
-              <a href={app.cv_url} target="_blank" rel="noreferrer">Xem CV</a>
-              <button>Liên hệ</button>
-              <button>Mời phỏng vấn</button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {list.length === 0 ? (
+        <div className="ja-empty">
+          <Icon name="users" size="lg" />
+          <h3>Chưa có ứng viên</h3>
+          <p>Chưa có ai ứng tuyển vào vị trí này</p>
+        </div>
+      ) : (
+        <div className="ja-table-wrap">
+          <table className="ja-table">
+            <thead>
+              <tr>
+                <th>Ứng viên</th>
+                <th>Email</th>
+                <th>Ngày ứng tuyển</th>
+                <th>CV</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((a) => (
+                <tr key={a.id}>
+                  <td className="ja-name">{a.candidate_name || `Ứng viên #${a.user_id}`}</td>
+                  <td>{a.email || '—'}</td>
+                  <td>{a.created_at ? new Date(a.created_at).toLocaleDateString('vi-VN') : '—'}</td>
+                  <td>
+                    {a.cv_url
+                      ? <a href={a.cv_url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><Icon name="file-text" size="sm" />Xem CV</a>
+                      : '—'}
+                  </td>
+                  <td>
+                    <select
+                      className="ja-status-select"
+                      value={a.status || 'submitted'}
+                      onChange={(e) => handleStatusChange(a.id, e.target.value)}
+                    >
+                      {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

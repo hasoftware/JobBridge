@@ -165,6 +165,10 @@ export const jobs = {
     return apiFetch(`/jobs${search ? `?${search}` : ''}`)
   },
   get: (id) => apiFetch(`/jobs/${id}`),
+  getMine: () => apiFetch("/jobs/mine"),
+  create: (payload) => apiFetch("/jobs", { method: "POST", body: JSON.stringify(payload) }),
+  update: (id, payload) => apiFetch(`/jobs/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
+  delete: (id) => apiFetch(`/jobs/${id}`, { method: "DELETE" }),
   getSaved: (params = {}) => {
     const search = new URLSearchParams(params).toString()
     return apiFetch(`/jobs/saved${search ? `?${search}` : ''}`)
@@ -202,6 +206,11 @@ export const applications = {
     return apiFetch(`/applications/mine${search ? `?${search}` : ''}`)
   },
   withdraw: (id) => apiFetch(`/applications/${id}/withdraw`, { method: "POST" }),
+  getForJob: (jobId) => apiFetch(`/applications/job/${jobId}`),
+  updateStatus: (id, status) => apiFetch(`/applications/${id}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
+  }),
 }
 
 export const admin = {
