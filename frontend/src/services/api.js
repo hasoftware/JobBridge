@@ -38,7 +38,7 @@ async function refreshAccessToken() {
       .then(async (res) => {
         if (!res.ok) throw new Error("refresh_failed")
         const data = await res.json()
-        token.setAccess(data.access_token)
+        token.set(data.access_token, data.refresh_token)
         return data.access_token
       })
       .finally(() => {

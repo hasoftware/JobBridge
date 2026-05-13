@@ -460,7 +460,20 @@ router.post("/refresh", async (req, res, next) => {
             { expiresIn: jwtConfig.accessExpiry },
         )
 
-        res.json({ access_token: accessToken })
+        const newRefreshToken = jwt.sign(
+            { id: user.id, jti: crypto.randomUUID() },
+            jwtConfig.refreshSecret,
+            { expiresIn: jwtConfig.refreshExpiry },
+        )
+        const newRefreshHash = crypto.createHash("sha256").update(newRefreshToken).digest("hex")
+
+        await pool.query("DELETE FROM refresh_tokens WHERE user_id=$1 AND token=$2", [user.id, tokenHash])
+        await pool.query(
+            "INSERT INTO refresh_tokens(user_id, token, expires_at) VALUES($1, $2, NOW() + INTERVAL '30 days')",
+            [user.id, newRefreshHash],
+        )
+
+        res.json({ access_token: accessToken, refresh_token: newRefreshToken })
     } catch (err) {
         if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
             return res.status(401).json({ message: "Refresh token invalid" })
