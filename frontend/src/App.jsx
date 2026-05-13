@@ -55,7 +55,8 @@ function PageLoader() {
 const GUARD_EXEMPT = ["/onboarding", "/verify-email", "/oauth/callback", "/login", "/register"]
 
 function GuestOnly({ children }) {
-    const { isAuthenticated, isAdmin } = useAuth()
+    const { isAuthenticated, isAdmin, isLoading } = useAuth()
+    if (isLoading) return null
     if (isAuthenticated) {
         return <Navigate to={isAdmin ? "/admin" : "/"} replace />
     }
@@ -63,19 +64,19 @@ function GuestOnly({ children }) {
 }
 
 function AuthGuardRedirect() {
-    const { user, isAuthenticated, isVerified } = useAuth()
+    const { user, isAuthenticated, isVerified, isLoading } = useAuth()
     const navigate = useNavigate()
     const { pathname } = useLocation()
 
     useEffect(() => {
-        if (!isAuthenticated || GUARD_EXEMPT.includes(pathname)) return
+        if (isLoading || !isAuthenticated || GUARD_EXEMPT.includes(pathname)) return
 
         if (!user?.role) {
             navigate("/onboarding", { replace: true })
         } else if (!isVerified) {
             navigate("/verify-email", { replace: true })
         }
-    }, [isAuthenticated, user?.role, isVerified, pathname, navigate])
+    }, [isLoading, isAuthenticated, user?.role, isVerified, pathname, navigate])
 
     return null
 }

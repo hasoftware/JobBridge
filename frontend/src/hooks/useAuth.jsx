@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { auth, token } from '../services/api'
 
 const AuthContext = createContext(null)
@@ -22,24 +22,20 @@ function clearPending() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      const u = localStorage.getItem('jb_user')
-      return u ? JSON.parse(u) : null
-    } catch {
-      return null
-    }
-  })
+  const [user, setUser] = useState(null)
+  const [isLoading, setIsLoading] = useState(() => !!(token.getAccess() || token.getRefresh()))
 
   const isAuthenticated = !!user
   const isRecruiter = user?.role === 'recruiter'
   const isAdmin = user?.role === 'admin'
   const isVerified = !!user?.is_verified
 
-  const persist = useCallback((userData) => {
-    setUser(userData)
-    localStorage.setItem('jb_user', JSON.stringify(userData))
-    return userData
+  useEffect(() => {
+    if (!token.getAccess() && !token.getRefresh()) return
+    auth.me()
+      .then(setUser)
+      .catch(() => token.clear())
+      .finally(() => setIsLoading(false))
   }, [])
 
   const login = useCallback(async (email, password) => {
@@ -48,26 +44,30 @@ export function AuthProvider({ children }) {
       return { requires_2fa: true, pending_2fa_token: data.pending_2fa_token }
     }
     token.set(data.access_token, data.refresh_token)
-    return persist({
+    const userData = {
       public_id: data.public_id || null,
       email: data.email,
       full_name: data.full_name || '',
       role: data.role,
       is_verified: !!data.is_verified,
-    })
-  }, [persist])
+    }
+    setUser(userData)
+    return userData
+  }, [])
 
   const completeTwoFA = useCallback(async (pending_token, code) => {
     const data = await auth.twoFA.verify(pending_token, code)
     token.set(data.access_token, data.refresh_token)
-    return persist({
+    const userData = {
       public_id: data.public_id || null,
       email: data.email,
       full_name: data.full_name || '',
       role: data.role,
       is_verified: !!data.is_verified,
-    })
-  }, [persist])
+    }
+    setUser(userData)
+    return userData
+  }, [])
 
   const register = useCallback(async ({ full_name, email, password, role }) => {
     const data = await auth.register({ full_name, email, password, role })
@@ -86,7 +86,6 @@ export function AuthProvider({ children }) {
       err.expired = true
       throw err
     }
-
     const data = await auth.verifyEmail(pending.token, code)
     clearPending()
     return data
@@ -94,10 +93,7 @@ export function AuthProvider({ children }) {
 
   const resendOtp = useCallback(async () => {
     const pending = getPending()
-    if (!pending?.token) {
-      throw new Error('Phiên đăng ký không tồn tại, vui lòng đăng ký lại')
-    }
-
+    if (!pending?.token) throw new Error('Phiên đăng ký không tồn tại, vui lòng đăng ký lại')
     const data = await auth.resendOtp(pending.token)
     setPending({
       token: data.pending_token,
@@ -111,36 +107,23 @@ export function AuthProvider({ children }) {
     clearPending()
   }, [])
 
-  const syncUserFields = useCallback((data) => {
-    return persist({
-      public_id: data.public_id ?? null,
-      email: data.email,
-      full_name: data.full_name || '',
-      role: data.role,
-      is_verified: !!data.is_verified,
-    })
-  }, [persist])
-
   const refreshUser = useCallback(async () => {
     const data = await auth.me()
-    syncUserFields(data)
+    setUser(data)
     return data
-  }, [syncUserFields])
+  }, [])
 
   const updateProfile = useCallback(async (payload) => {
     const data = await auth.updateProfile(payload)
-    syncUserFields(data)
+    setUser((prev) => ({ ...prev, ...data }))
     return data
-  }, [syncUserFields])
+  }, [])
 
   const getPendingEmail = useCallback(() => getPending()?.email || null, [])
 
   const logout = useCallback(async () => {
-    try {
-      await auth.logout()
-    } catch {}
+    try { await auth.logout() } catch {}
     token.clear()
-    localStorage.removeItem('jb_user')
     setUser(null)
   }, [])
 
@@ -153,6 +136,7 @@ export function AuthProvider({ children }) {
       isRecruiter,
       isAdmin,
       isVerified,
+      isLoading,
       login,
       completeTwoFA,
       register,
