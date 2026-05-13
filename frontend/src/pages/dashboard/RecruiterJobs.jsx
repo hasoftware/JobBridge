@@ -95,7 +95,7 @@ export default function RecruiterJobs() {
   }
 
   function handleViewApplicants(job) {
-    navigate(`/dashboard/jobs/${job.id}/applicants`, { state: { jobTitle: job.title } })
+    navigate(`/dashboard/applicants/${job.id}`, { state: { jobTitle: job.title } })
   }
 
   if (loading) {
