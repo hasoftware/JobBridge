@@ -119,7 +119,8 @@ export default function App() {
                         <Route path="companies" element={<CompanyProfilePage />} />
                         <Route path="jobs/create" element={<JobForm />} />
                         <Route path="jobs/:id/edit" element={<JobForm />} />
-                        <Route path="jobs/:id/applicants" element={<JobApplicants />} />
+                        <Route path="applicants" element={<JobApplicants />} />
+                        <Route path="applicants/:id" element={<JobApplicants />} />
                         <Route path="search" element={<RecruiterSearch />} />
                     </Route>
                     <Route path="admin" element={<AdminLayout />}>
