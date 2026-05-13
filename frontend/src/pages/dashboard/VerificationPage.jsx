@@ -1,76 +1,126 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { companies as companiesApi } from '../../services/api'
+import { useToast } from '../../hooks/useToast'
+import './VerificationPage.css'
+
+const DOC_ICONS = { pdf: '📄', doc: '📝', docx: '📝', png: '🖼', jpg: '🖼', jpeg: '🖼' }
+
+function docIcon(type) {
+  return DOC_ICONS[type?.toLowerCase()] || '📎'
+}
 
 export default function VerificationPage() {
+  const { addToast } = useToast()
   const [docs, setDocs] = useState([])
-  const [status, setStatus] = useState('unverified')
+  const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [downloading, setDownloading] = useState(null)
 
-  const handleUpload = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File không được vượt quá 5MB')
-      return
-    }
+  const loadDocs = () => {
+    setLoading(true)
+    companiesApi.getVerificationDocs()
+      .then(setDocs)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }
 
+  useEffect(() => { loadDocs() }, [])
+
+  async function handleUpload(e) {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
     setUploading(true)
-    setTimeout(() => {
-      setDocs((prev) => [...prev, {
-        id: Date.now(),
-        name: file.name,
-        size: file.size,
-        uploaded_at: new Date().toLocaleDateString('vi-VN'),
-      }])
-      setStatus('pending')
+    try {
+      await companiesApi.submitVerification(files)
+      loadDocs()
+      addToast('Đã tải lên tài liệu', 'success')
+    } catch (err) {
+      addToast(err.message || 'Tải lên thất bại', 'error')
+    } finally {
       setUploading(false)
-    }, 800)
+      e.target.value = ''
+    }
   }
 
-  const handleRemove = (id) => {
-    setDocs((prev) => prev.filter((d) => d.id !== id))
+  async function handleDelete(id) {
+    if (!window.confirm('Xóa tài liệu này?')) return
+    try {
+      await companiesApi.deleteVerificationDocs(id)
+      setDocs((prev) => prev.filter((d) => d.id !== id))
+      addToast('Đã xóa tài liệu', 'success')
+    } catch (err) {
+      addToast(err.message || 'Xóa thất bại', 'error')
+    }
   }
+
+  async function handleDownload(doc) {
+    setDownloading(doc.id)
+    try {
+      await companiesApi.downloadVerificationDoc(doc.id, doc.file_name)
+    } catch {
+      addToast('Tải xuống thất bại', 'error')
+    } finally {
+      setDownloading(null)
+    }
+  }
+
+  if (loading) return <div className="vp-loading">Đang tải...</div>
 
   return (
-    <div className="dashboard-page">
-      <h1>Xác thực doanh nghiệp</h1>
-
-      <div className={`verify-status status-${status}`}>
-        {status === 'unverified' && 'Chưa xác thực'}
-        {status === 'pending' && 'Đang chờ duyệt'}
-        {status === 'verified' && 'Đã xác thực'}
-        {status === 'rejected' && 'Bị từ chối'}
-      </div>
-
-      <p className="verify-hint">
-        Để xác thực doanh nghiệp, vui lòng upload các giấy tờ: ĐKKD, MST, hợp đồng dịch vụ.
-        Kích thước tối đa 5MB/file. Định dạng PDF, JPG, PNG.
-      </p>
-
-      <div className="verify-upload">
-        <input
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          onChange={handleUpload}
-          disabled={uploading}
-        />
-        {uploading && <span>Đang tải lên...</span>}
-      </div>
-
-      {docs.length > 0 && (
-        <div className="verify-docs">
-          <h3>Tài liệu đã upload</h3>
-          {docs.map((d) => (
-            <div key={d.id} className="verify-doc">
-              <div>
-                <div className="verify-doc-name">{d.name}</div>
-                <div className="verify-doc-meta">
-                  {(d.size / 1024 / 1024).toFixed(2)} MB · {d.uploaded_at}
-                </div>
-              </div>
-              <button onClick={() => handleRemove(d.id)}>Xoá</button>
-            </div>
-          ))}
+    <div className="vp-page">
+      <div className="vp-header">
+        <div>
+          <h1>Xác minh công ty</h1>
+          <p>Tải lên giấy tờ để xác minh doanh nghiệp (tối đa 5 tài liệu, 10MB mỗi file)</p>
         </div>
+        <label className={`btn btn-primary btn-sm vp-upload-btn${uploading ? ' disabled' : ''}`}>
+          {uploading ? 'Đang tải...' : '+ Tải tài liệu'}
+          <input
+            type="file"
+            multiple
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            style={{ display: 'none' }}
+            onChange={handleUpload}
+            disabled={uploading}
+          />
+        </label>
+      </div>
+
+      {docs.length === 0 ? (
+        <div className="vp-empty">
+          <div className="vp-empty-icon">📋</div>
+          <h3>Chưa có tài liệu</h3>
+          <p>Tải lên giấy đăng ký kinh doanh, giấy phép hoặc tài liệu xác minh khác</p>
+        </div>
+      ) : (
+        <ul className="vp-list">
+          {docs.map((doc) => (
+            <li key={doc.id} className="vp-row">
+              <span className="vp-doc-icon">{docIcon(doc.document_type)}</span>
+              <div className="vp-row-main">
+                <span className="vp-file-name">{doc.file_name}</span>
+                <span className="vp-file-meta">
+                  {doc.document_type?.toUpperCase()} · {new Date(doc.uploaded_at).toLocaleDateString('vi-VN')}
+                </span>
+              </div>
+              <div className="vp-row-actions">
+                <button
+                  className="vp-action"
+                  onClick={() => handleDownload(doc)}
+                  disabled={downloading === doc.id}
+                >
+                  {downloading === doc.id ? 'Đang tải...' : 'Tải xuống'}
+                </button>
+                <button
+                  className="vp-action vp-action-danger"
+                  onClick={() => handleDelete(doc.id)}
+                >
+                  Xóa
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )

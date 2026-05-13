@@ -75,6 +75,52 @@
     color: #b45309;
 }
 
+.profile-avatar-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.profile-avatar-preview {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    background: #e0e7ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.profile-avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-preview span {
+    font-size: 26px;
+    font-weight: 700;
+    color: #4f46e5;
+}
+
+.profile-avatar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.profile-avatar-btn {
+    cursor: pointer;
+}
+
+.profile-avatar-hint {
+    font-size: 11.5px;
+    color: #94a3b8;
+}
+
 .profile-form {
     display: flex;
     flex-direction: column;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
-import { auth as authApi } from '../../services/api'
+import { auth as authApi, fileUrl } from '../../services/api'
 import AddressSelect from '../../components/common/AddressSelect'
 import './ProfileSettings.css'
 
@@ -64,6 +64,9 @@ export default function ProfileSettings() {
     const { addToast } = useToast()
     const [meta, setMeta] = useState({ public_id: '', email: '', is_verified: false })
     const [formData, setFormData] = useState(EMPTY)
+    const [avatarUrl, setAvatarUrl] = useState('')
+    const [avatarFile, setAvatarFile] = useState(null)
+    const [avatarPreview, setAvatarPreview] = useState('')
     const [errors, setErrors] = useState({})
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -87,6 +90,7 @@ export default function ProfileSettings() {
                     address: data.address && typeof data.address === 'object' ? { ...EMPTY_ADDRESS, ...data.address } : EMPTY_ADDRESS,
                     bio: data.bio || '',
                 })
+                setAvatarUrl(data.avatar_url || '')
             })
             .catch((err) => {
                 if (!cancelled) setApiError(err.message || 'Không tải được hồ sơ')
@@ -96,6 +100,13 @@ export default function ProfileSettings() {
             })
         return () => { cancelled = true }
     }, [])
+
+    function handleAvatarChange(e) {
+        const file = e.target.files?.[0]
+        if (!file) return
+        setAvatarFile(file)
+        setAvatarPreview(URL.createObjectURL(file))
+    }
 
     const validate = () => {
         const next = {}
@@ -157,6 +168,12 @@ export default function ProfileSettings() {
         setSaving(true)
         setApiError('')
         try {
+            if (avatarFile) {
+                const res = await authApi.uploadAvatar(avatarFile)
+                setAvatarUrl(res.avatar_url)
+                setAvatarFile(null)
+            }
+
             const dobIso = formData.date_of_birth ? ddmmyyyyToIso(formData.date_of_birth) : ''
             const hasAddress = formData.address.street
                 || formData.address.province_code
@@ -210,6 +227,22 @@ export default function ProfileSettings() {
                     <span className={`profile-status ${meta.is_verified ? 'verified' : 'unverified'}`}>
                         {verifiedLabel}
                     </span>
+                </div>
+            </section>
+
+            <section className="profile-card profile-avatar-card">
+                <div className="profile-avatar-preview">
+                    {(avatarPreview || fileUrl(avatarUrl))
+                        ? <img src={avatarPreview || fileUrl(avatarUrl)} alt="avatar" onError={(e) => { e.target.style.display = 'none' }} />
+                        : <span>{formData.full_name?.[0]?.toUpperCase() || '?'}</span>
+                    }
+                </div>
+                <div className="profile-avatar-info">
+                    <label className="btn btn-outline btn-sm profile-avatar-btn">
+                        Thay đổi ảnh
+                        <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" style={{ display: 'none' }} onChange={handleAvatarChange} />
+                    </label>
+                    <span className="profile-avatar-hint">PNG, JPG, WEBP — tối đa 2MB</span>
                 </div>
             </section>
 

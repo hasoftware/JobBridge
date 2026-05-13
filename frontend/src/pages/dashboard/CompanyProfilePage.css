@@ -37,19 +37,47 @@
     gap: 16px;
 }
 
-.cp-logo-preview {
+.cp-logo-upload {
     display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 4px;
+}
+
+.cp-logo-preview {
+    width: 72px;
+    height: 72px;
+    border: 1px solid var(--jb-border);
+    border-radius: var(--jb-radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--jb-surface-2);
+    display: flex;
+    align-items: center;
     justify-content: center;
-    padding-bottom: 8px;
 }
 
 .cp-logo-preview img {
-    width: 80px;
-    height: 80px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    border: 1px solid var(--jb-border);
-    border-radius: var(--jb-radius-md);
     padding: 4px;
+    box-sizing: border-box;
+}
+
+.cp-logo-placeholder {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--jb-primary);
+}
+
+.cp-logo-btn {
+    cursor: pointer;
+}
+
+.cp-logo-hint {
+    font-size: 11.5px;
+    color: var(--jb-text-tertiary);
 }
 
 .cp-row {

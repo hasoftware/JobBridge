@@ -1,9 +1,105 @@
+const path = require("path")
 const express = require("express")
 const pool = require("../../config/db")
 const auth = require("../middleware/auth")
 const { requireRole } = auth
+const { uploadLogoMiddleware } = require("../middleware/upload/uploadLogo")
+const { uploadVerificationMiddleware } = require("../middleware/upload/uploadVerification")
+const { upload } = require("../../config")
 
 const router = express.Router()
+
+router.put("/mine/logo", auth, requireRole("recruiter", "admin"), uploadLogoMiddleware, async (req, res, next) => {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" })
+    const logoUrl = path.join(upload.base_path, "logos", req.file.filename).replace(/\\/g, "/")
+    try {
+        await pool.query("UPDATE companies SET logo_url=$1 WHERE user_id=$2", [logoUrl, req.user.id])
+        res.json({ logo_url: logoUrl })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.post("/mine/verify", auth, requireRole("recruiter"), uploadVerificationMiddleware, async (req, res, next) => {
+    const files = req.files
+    if (!files || files.length === 0) return res.status(400).json({ message: "No files uploaded" })
+    try {
+        const { rows: companies } = await pool.query("SELECT id FROM companies WHERE user_id=$1", [req.user.id])
+        if (companies.length === 0) return res.status(404).json({ message: "Company not found" })
+        const companyId = companies[0].id
+        const values = files.map((_, i) => `($1, $${i * 3 + 2}, $${i * 3 + 3}, $${i * 3 + 4})`).join(", ")
+        const params = files.flatMap((f) => [
+            path.join(upload.base_path, "verification_docs", f.filename).replace(/\\/g, "/"),
+            path.extname(f.originalname).slice(1).toLowerCase(),
+            f.originalname,
+        ])
+        const { rows } = await pool.query(
+            `INSERT INTO company_verification_documents (company_id, file_path, document_type, file_name) VALUES ${values} RETURNING id, file_name, file_path, document_type, uploaded_at`,
+            [companyId, ...params],
+        )
+        res.status(201).json(rows)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.get("/mine/verify", auth, requireRole("recruiter"), async (req, res, next) => {
+    try {
+        const { rows: companies } = await pool.query("SELECT id FROM companies WHERE user_id=$1", [req.user.id])
+        if (companies.length === 0) return res.status(404).json({ message: "Company not found" })
+        const { rows } = await pool.query(
+            "SELECT id, file_name, file_path, document_type, uploaded_at FROM company_verification_documents WHERE company_id=$1 ORDER BY uploaded_at ASC",
+            [companies[0].id],
+        )
+        res.json(rows)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.delete("/mine/verify", auth, requireRole("recruiter"), async (req, res, next) => {
+    const { docs } = req.body
+    if (!docs || docs.length === 0) return res.status(400).json({ message: "docs array is required" })
+    try {
+        const { rows: companies } = await pool.query("SELECT id FROM companies WHERE user_id=$1", [req.user.id])
+        if (companies.length === 0) return res.status(404).json({ message: "Company not found" })
+        const companyId = companies[0].id
+        const { rowCount } = await pool.query(
+            "DELETE FROM company_verification_documents WHERE id = ANY($1) AND company_id=$2",
+            [docs, companyId],
+        )
+        const { rows: remaining } = await pool.query(
+            "SELECT COUNT(*) FROM company_verification_documents WHERE company_id=$1",
+            [companyId],
+        )
+        if (parseInt(remaining[0].count, 10) === 0) {
+            await pool.query("UPDATE companies SET verification_status='unverified' WHERE id=$1", [companyId])
+        }
+        res.json({ deleted: rowCount })
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.get("/mine/verify/:docId/download", auth, requireRole("recruiter", "admin"), async (req, res, next) => {
+    try {
+        const { rows } = await pool.query(
+            "SELECT cvd.file_path, cvd.file_name, cvd.company_id FROM company_verification_documents cvd WHERE cvd.id=$1",
+            [req.params.docId],
+        )
+        if (rows.length === 0) return res.status(404).json({ message: "Document not found" })
+        const doc = rows[0]
+        if (req.user.role !== "admin") {
+            const { rows: companies } = await pool.query("SELECT id FROM companies WHERE user_id=$1", [req.user.id])
+            if (companies.length === 0 || companies[0].id !== doc.company_id) {
+                return res.status(403).json({ message: "Forbidden" })
+            }
+        }
+        res.download(path.resolve(doc.file_path), doc.file_name)
+    } catch (err) {
+        next(err)
+    }
+})
 
 router.get("/mine", auth, requireRole("recruiter", "admin"), async (req, res, next) => {
     try {

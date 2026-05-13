@@ -19,6 +19,7 @@ const RECRUITER_NAV = [
   { path: 'applicants', label: 'Ứng viên' },
   { path: 'companies', label: 'Hồ sơ công ty' },
   { path: 'search', label: 'Tìm ứng viên' },
+  { path: 'verification', label: 'Xác minh công ty' },
 ]
 
 export default function Dashboard() {

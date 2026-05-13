@@ -91,6 +91,19 @@ async function apiFetch(path, options = {}, _retried = false) {
   return data
 }
 
+async function apiUpload(path, formData) {
+  const access = token.getAccess()
+  const headers = access ? { Authorization: `Bearer ${access}` } : {}
+  const res = await fetch(`${BASE}${path}`, { method: "POST", headers, body: formData })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const err = new Error(data.message || `Request failed: ${res.status}`)
+    err.status = res.status
+    throw err
+  }
+  return data
+}
+
 export const auth = {
   login: (email, password) => apiFetch("/auth/login", {
     method: "POST",
@@ -110,6 +123,7 @@ export const auth = {
     body: JSON.stringify({ pending_token }),
   }),
   me: () => apiFetch("/auth/me"),
+  uploadAvatar: (file) => { const fd = new FormData(); fd.append("avatar", file); return apiUpload("/auth/me/avatar", fd) },
   updateProfile: (payload) => apiFetch("/auth/me", {
     method: "PATCH",
     body: JSON.stringify(payload),
@@ -180,6 +194,33 @@ export const jobs = {
 export const companies = {
   getMine: () => apiFetch("/companies/mine"),
   updateMine: (payload) => apiFetch("/companies/mine", { method: "PUT", body: JSON.stringify(payload) }),
+  uploadLogo: (file) => { const fd = new FormData(); fd.append("logo", file); return apiUpload("/companies/mine/logo", fd) },
+  submitVerification: (files) => {
+    const fd = new FormData()
+    const list = Array.isArray(files) ? files : [files]
+    list.forEach((f) => fd.append('documents', f))
+    return apiUpload('/companies/mine/verify', fd)
+  },
+  getVerificationDocs: () => apiFetch('/companies/mine/verify'),
+  deleteVerificationDocs: (ids) => apiFetch('/companies/mine/verify', {
+    method: 'DELETE',
+    body: JSON.stringify({ docs: Array.isArray(ids) ? ids : [ids] }),
+  }),
+  downloadVerificationDoc: (docId, fileName) => {
+    const access = token.getAccess()
+    return fetch(`${BASE}/companies/mine/verify/${docId}/download`, {
+      headers: access ? { Authorization: `Bearer ${access}` } : {},
+    }).then(async (res) => {
+      if (!res.ok) throw new Error('Download failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName || 'document'
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+  },
   list: (params = {}) => {
     const search = new URLSearchParams(params).toString()
     return apiFetch(`/companies${search ? `?${search}` : ''}`)

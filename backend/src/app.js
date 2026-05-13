@@ -1,5 +1,6 @@
 require("dotenv").config({ path: require("path").join(__dirname, "../../.env") })
 
+const path = require("path")
 const express = require("express")
 const cors = require("cors")
 const rateLimit = require("express-rate-limit")
@@ -20,6 +21,10 @@ const app = express()
 
 app.use(cors(corsConfig))
 app.use(express.json({ limit: "1mb" }))
+app.use("/uploads",
+    (req, res, next) => { res.setHeader("Cross-Origin-Resource-Policy", "cross-origin"); next() },
+    express.static(path.join(__dirname, "..", "uploads")),
+)
 
 const apiLimiter = rateLimit({
     windowMs: 60 * 1000,

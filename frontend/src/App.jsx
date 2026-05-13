@@ -39,6 +39,7 @@ const RecruiterSearch = lazy(() => import("./pages/dashboard/RecruiterSearch"))
 const CompanyProfilePage = lazy(() => import("./pages/dashboard/CompanyProfilePage"))
 const JobForm = lazy(() => import("./pages/dashboard/JobForm"))
 const JobApplicants = lazy(() => import("./pages/dashboard/JobApplicants"))
+const VerificationPage = lazy(() => import("./pages/dashboard/VerificationPage"))
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"))
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
@@ -123,6 +124,7 @@ export default function App() {
                         <Route path="applicants" element={<JobApplicants />} />
                         <Route path="applicants/:id" element={<JobApplicants />} />
                         <Route path="search" element={<RecruiterSearch />} />
+                        <Route path="verification" element={<VerificationPage />} />
                     </Route>
                     <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />

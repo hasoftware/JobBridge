@@ -1,3 +1,4 @@
+const path = require("path")
 const express = require("express")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
@@ -5,7 +6,8 @@ const crypto = require("crypto")
 const { authenticator } = require("otplib")
 
 const pool = require("../../config/db")
-const { jwt: jwtConfig } = require("../../config")
+const { jwt: jwtConfig, upload } = require("../../config")
+const { uploadAvatarMiddleware } = require("../middleware/upload/uploadAvatar")
 const { validate, schemas } = require("../utils/validate")
 const { sendVerifyEmailOtp } = require("../utils/email")
 const auth = require("../middleware/auth")
@@ -603,10 +605,21 @@ router.delete("/sessions", auth, async (req, res, next) => {
     }
 })
 
+router.post("/me/avatar", auth, uploadAvatarMiddleware, async (req, res, next) => {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" })
+    const avatarUrl = path.join(upload.base_path, "avatars", req.file.filename).replace(/\\/g, "/")
+    try {
+        await pool.query("UPDATE users SET avatar_url=$1 WHERE id=$2", [avatarUrl, req.user.id])
+        res.json({ avatar_url: avatarUrl })
+    } catch (err) {
+        next(err)
+    }
+})
+
 router.get("/me", auth, async (req, res, next) => {
     try {
         const result = await pool.query(
-            "SELECT id, public_id, email, full_name, phone, date_of_birth, gender, address, bio, role, is_verified, two_factor_enabled, created_at FROM users WHERE id=$1",
+            "SELECT id, public_id, email, full_name, phone, date_of_birth, gender, address, bio, avatar_url, role, is_verified, two_factor_enabled, created_at FROM users WHERE id=$1",
             [req.user.id],
         )
         if (result.rows.length === 0) return res.status(404).json({ message: "Not found" })

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { companies as companiesApi } from '../../services/api'
+import { companies as companiesApi, fileUrl } from '../../services/api'
 import { useToast } from '../../hooks/useToast'
 import { GICS_SECTORS } from '../../services/constants'
 import './CompanyProfilePage.css'
@@ -8,7 +8,6 @@ const SIZES = ['1-10', '11-50', '51-200', '201-500', '500+']
 
 const EMPTY = {
   name: '',
-  logo_url: '',
   website: '',
   location: '',
   industry: '',
@@ -19,6 +18,9 @@ const EMPTY = {
 export default function CompanyProfilePage() {
   const { addToast } = useToast()
   const [form, setForm] = useState(EMPTY)
+  const [logoUrl, setLogoUrl] = useState('')
+  const [logoFile, setLogoFile] = useState(null)
+  const [logoPreview, setLogoPreview] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -28,13 +30,13 @@ export default function CompanyProfilePage() {
         if (p) {
           setForm({
             name: p.name || '',
-            logo_url: p.logo_url || '',
             website: p.website || '',
             location: p.location || '',
             industry: p.industry || '',
             company_size: p.company_size || '',
             description: p.description || '',
           })
+          setLogoUrl(p.logo_url || '')
         }
       })
       .catch(() => {})
@@ -43,11 +45,23 @@ export default function CompanyProfilePage() {
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }))
 
+  function handleLogoChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+  }
+
   async function handleSave(e) {
     e.preventDefault()
     if (!form.name.trim()) { addToast('Tên công ty là bắt buộc', 'error'); return }
     setSaving(true)
     try {
+      if (logoFile) {
+        const res = await companiesApi.uploadLogo(logoFile)
+        setLogoUrl(res.logo_url)
+        setLogoFile(null)
+      }
       await companiesApi.updateMine(form)
       addToast('Đã cập nhật hồ sơ công ty', 'success')
     } catch (err) {
@@ -56,6 +70,8 @@ export default function CompanyProfilePage() {
       setSaving(false)
     }
   }
+
+  const displayLogo = logoPreview || fileUrl(logoUrl)
 
   if (loading) return <div className="cp-loading">Đang tải...</div>
 
@@ -67,20 +83,23 @@ export default function CompanyProfilePage() {
       </div>
 
       <form className="cp-card" onSubmit={handleSave}>
-        {form.logo_url && (
+        <div className="cp-logo-upload">
           <div className="cp-logo-preview">
-            <img src={form.logo_url} alt="logo" onError={(e) => { e.target.style.display = 'none' }} />
+            {displayLogo
+              ? <img src={displayLogo} alt="logo" onError={(e) => { e.target.style.display = 'none' }} />
+              : <span className="cp-logo-placeholder">{form.name?.[0]?.toUpperCase() || 'C'}</span>
+            }
           </div>
-        )}
+          <label className="cp-logo-btn btn btn-outline btn-sm">
+            Tải lên logo
+            <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" style={{ display: 'none' }} onChange={handleLogoChange} />
+          </label>
+          <span className="cp-logo-hint">PNG, JPG, WEBP — tối đa 2MB</span>
+        </div>
 
         <div className="cp-group">
           <label>Tên công ty *</label>
           <input className="cp-input" value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="VD: Tech Corp" required />
-        </div>
-
-        <div className="cp-group">
-          <label>URL Logo</label>
-          <input className="cp-input" value={form.logo_url} onChange={(e) => set('logo_url', e.target.value)} placeholder="https://example.com/logo.png" />
         </div>
 
         <div className="cp-row">
